@@ -170,7 +170,7 @@ class fast_macd_strtgy(bt.Strategy):
                 if self.fastMacd.signal[0] < 3:
                     self.out_point_up = self.buy_price * (
                         1 + ((self.buy_price - self.inOutLine.lowest[0]) / self.buy_price) * 1.5)
-                if self.fastMacd.signal[0] < 9:
+                elif self.fastMacd.signal[0] < 9:
                     self.out_point_up = self.buy_price * (
                         1 + ((self.buy_price - self.inOutLine.lowest[0]) / self.buy_price) * 0.7)
                 else:
@@ -227,11 +227,12 @@ end_date = datetime.today()
 # 300568 星源材质
 # 002460 赣锋锂业
 
-# stocks_map = dict([('300568', '星源材质'), ('002460', '赣锋锂业'), ('000858', '五粮液'), ("000333", "美的")])
+stocks_map = dict([('300568', '星源材质'), ('002460', '赣锋锂业'), ('000858', '五粮液'), ("000333", "美的"), ("603259", "药明")])
+
 # stocks_map = dict([('300568', '星源材质')])
 # stocks_map = dict([('002460', '赣锋锂业')])
 # stocks_map = dict([('000858', '五粮液')])
-stocks_map = dict([('000333', '美的')])
+# stocks_map = dict([('000333', '美的')])
 
 global stock
 global stock_name
@@ -298,7 +299,7 @@ for stock in stocks_map.keys():
 
     # printTradeAnalysis(cerebro, result[0].analyzers)
 
-    cerebro.plot(style='candlestick', volume=True)  # 画图
+    # cerebro.plot(style='candlestick', volume=True)  # 画图
 
     # input('next')
     time.sleep(10)

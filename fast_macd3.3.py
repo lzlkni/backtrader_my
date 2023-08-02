@@ -123,6 +123,11 @@ class fast_macd_strtgy(bt.Strategy):
             # if self.data_close[0] > self.sma[0]:  # 执行买入条件判断：收盘价格上涨突破20日均线
 
             # if self.upCrossSignal.crossOver == 1 and self.fastMacd.macd[0] > 0.0 and self.fastMacd.signal[0] > 0.0:
+
+            if self.upCrossSignal.crossOver == 1 and self.fastMacd.l.signal[0] > 0:
+                print(f"{self.datas[0].datetime.date(0)} Buy tomorrow!")
+                self.email_notify(f"{self.datas[0].datetime.date(0)} Buy tomorrow!")
+            
             if self.upCrossSignal.crossOver == 1 and self.fastMacd.l.signal[0] > 0: # If macd > 0
                 self.order = self.buy()  # 执行买入
                 # self.out_point_up = self.inOutLine.lowest[0] * 1.5
@@ -140,6 +145,8 @@ class fast_macd_strtgy(bt.Strategy):
             # if self.upCrossSignal.crossOver == -1:
             if self.data_close[0] >= self.out_point_up or self.data_close[0] <= self.out_point_down:
             # if self.data_high[0] >= self.out_point_up or self.data_high[0] <= self.out_point_down:
+                print(f"{self.datas[0].datetime.date(0)} Sell tomorrow!")
+                self.email_notify(f"{self.datas[0].datetime.date(0)} Sell tomorrow!")
                 self.order = self.close()  # 执行卖出
 
 
@@ -186,7 +193,7 @@ class fast_macd_strtgy(bt.Strategy):
                             1 + ((self.buy_price - self.inOutLine.lowest[0]) / self.buy_price) * 1.5)
                     cat = 3
 
-                msg = f"{stock} Buy executed, Price: {order.executed.price: .2f}, Cost: {order.executed.value}, Comm: {order.executed.comm}, target: {self.out_point_up}, stop: {self.out_point_down}, cat: {cat}"
+                msg = f"{stock} Buy executed, Price: {order.executed.price: .2f}, Cost: {order.executed.value}, Comm: {order.executed.comm}, target: {self.out_point_up}, stop: {self.out_point_down}, cat: {cat}, upcross: {self.upCrossSignal.crossOver[-1]}"
                 self.log(msg)
                 self.email_notify(msg)
 
