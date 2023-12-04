@@ -15,13 +15,13 @@ from datetime import date
 ######
 # Change notes
 # 3.3 Add pre instrustion for buy/sell
-# 3.4.1 Fix outpoint
+
 #####
 
 
 class InOutLine(bt.Indicator):
     lines = ('lowest', 'upper',)
-    params = (('low_period', 10),)
+    params = (('low_period', 5),)
 
     plotinfo = dict(subplot=False, plot=True)
 
@@ -91,8 +91,12 @@ class fast_macd_strtgy(bt.Strategy):
     # params = (("fast_length", 12), ("slow_length", 26), ("signal_length", 9))
 
     def __init__(self):
-        self.sma = bt.indicators.SimpleMovingAverage(
-            self.datas[0], period=120
+        self.sma5 = bt.indicators.SimpleMovingAverage(
+            self.datas[0], period=5
+        )
+
+        self.sma13 = bt.indicators.SimpleMovingAverage(
+            self.datas[0], period=13
         )
 
         self.fastMacd = FastMACD()
@@ -132,6 +136,7 @@ class fast_macd_strtgy(bt.Strategy):
 
             
             if self.upCrossSignal.crossOver == 1 and self.fastMacd.l.signal[0] > 0: # If macd > 0            
+            # if self.upCrossSignal.crossOver == 1 and self.fastMacd.l.signal[0] > 0 and self.sma5 > self.sma13: # If macd > 0            
                 print(f"{self.datas[0].datetime.date(0)} Buy tomorrow!")
                 self.email_notify(f"{self.datas[0].datetime.date(0)} Buy tomorrow!")
 
@@ -143,15 +148,15 @@ class fast_macd_strtgy(bt.Strategy):
 
             # if highest > target revise out_point_down
             if self.data_high[0] >= self.out_point_up * 0.985:
-                out_point_down_chk = min(self.data_close[0], self.data_low[0], self.buy_price)
+                out_point_down_chk = max(self.data_close[0], self.data_low[0], self.buy_price)
                 if out_point_down_chk > self.out_point_down:
                     self.out_point_down = out_point_down_chk
-                    print((f"Out point down revised to {self.out_point_down}"))
+                    print((f"{self.datas[0].datetime.date(0)} Out point down revised to {self.out_point_down}"))
                     self.email_notify(f"Out point down revised to {self.out_point_down}")
 
 
-            if self.data_close[0] >= self.out_point_up or self.data_close[0] <= self.out_point_down:
-            # if self.data_high[0] >= self.out_point_up or self.data_high[0] <= self.out_point_down:
+            # if self.data_close[0] >= self.out_point_up or self.data_close[0] <= self.out_point_down or self.sma5 < self.sma13:
+            if self.data_high[0] >= self.out_point_up or self.data_high[0] <= self.out_point_down:
                 print(f"{self.datas[0].datetime.date(0)} Sell tomorrow!")
                 self.email_notify(f"{self.datas[0].datetime.date(0)} Sell tomorrow!")
                 self.order = self.close()  # 执行卖出
@@ -229,17 +234,16 @@ class fast_macd_strtgy(bt.Strategy):
 ########## Main #################
 
 # Prepare data
-start_date = datetime(2020, 1, 1).strftime('%Y%m%d')  # 回测开始时间
+start_date = datetime(2020, 1, 1).strftime('%Y%m%d') # 回测开始时间
+
 # end_date = datetime(2022, 12, 16)  # 回测结束时间
 end_date = datetime.today().strftime('%Y%m%d')
 
 # 300568 星源材质
 # 002460 赣锋锂业
 
-# stocks_map = dict([('300568', '星源材质'), ('002460', '赣锋锂业'), ('000858', '五粮液'), ("000333", "美的"), ("603259", "药明"), 
-#                    ('300638', '广和'), ('002881', '美格'), ('603118', '共进'),('600507', '方大特钢'),('601088', '中国神华')]
-                #    )
-# stocks_map = dict([('300568', '星源材质')])
+# stocks_map = dict([('300568', '星源材质'), ('002460', '赣锋锂业'), ('000858', '五粮液'), ("000333", "美的"), ("603259", "药明"), ('300638', '广和'), ('002881', '美格'), ('603118', '共进')])
+# stocks_map = dict([('601138', '工业富联')])
 # stocks_map = dict([('002460', '赣锋锂业')])
 # stocks_map = dict([('000858', '五粮液')])
 # stocks_map = dict([('000333', '美的')])
@@ -253,7 +257,8 @@ global stock_name
 
 for stock in stocks_map.keys():
     stock_name = stocks_map[stock]
-    stock_hfq_df = ak.stock_zh_a_hist(symbol=stock, adjust="qfq", start_date=start_date, end_date=end_date).iloc[:, :6]  # 利用 AkShare 一行获取复权数据
+    stock_hfq_df = ak.stock_zh_a_hist(symbol=stock, adjust="qfq", period="daily",start_date=start_date, end_date=end_date).iloc[:, :6]  # 利用 AkShare 一行获取复权数据
+        
     stock_hfq_df.columns = [
         'date',
         'open',
@@ -292,8 +297,8 @@ for stock in stocks_map.keys():
                         timeframe=bt.TimeFrame.Days)
     cerebro.addanalyzer(bt.analyzers.VWR, _name='vwr')
     cerebro.addanalyzer(bt.analyzers.SQN, _name='sqn')
-    cerebro.addanalyzer(bt.analyzers.Transactions, _name='txn')
-    cerebro.addanalyzer(bt.analyzers.Transactions, _name='txn')
+    # cerebro.addanalyzer(bt.analyzers.Transactions, _name='txn')
+    # cerebro.addanalyzer(bt.analyzers.Transactions, _name='txn')
     cerebro.addanalyzer(bt.analyzers.VWR, _name='vwr')
     cerebro.addanalyzer(bt.analyzers.SQN, _name='sqn')
 
