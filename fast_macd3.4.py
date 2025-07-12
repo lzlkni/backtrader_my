@@ -1,8 +1,8 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 import time
 
 import backtrader as bt
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 import akshare as ak
 import pandas as pd
 
@@ -21,7 +21,7 @@ from datetime import date
 
 class InOutLine(bt.Indicator):
     lines = ('lowest', 'upper',)
-    params = (('low_period', 10),)
+    params = (('low_period', 12),)
 
     plotinfo = dict(subplot=False, plot=True)
 
@@ -150,7 +150,7 @@ class fast_macd_strtgy(bt.Strategy):
                     self.email_notify(f"Out point down revised to {self.out_point_down}")
 
 
-            if self.data_close[0] >= self.out_point_up or self.data_close[0] <= self.out_point_down:
+            if self.data_close[0] >= self.out_point_up or self.data_close[0] <= self.out_point_down:  
             # if self.data_high[0] >= self.out_point_up or self.data_high[0] <= self.out_point_down:
                 print(f"{self.datas[0].datetime.date(0)} Sell tomorrow!")
                 self.email_notify(f"{self.datas[0].datetime.date(0)} Sell tomorrow!")
@@ -223,13 +223,14 @@ class fast_macd_strtgy(bt.Strategy):
     def log(self, txt, dt=None, doprint=True):
         if doprint:
             dt = dt or self.datas[0].datetime.date(0)
-            print(f"{dt.isoformat()} {txt}")
+            if dt > (datetime.today() - timedelta(days=90)).date():
+                print(f"{dt.isoformat()} {txt}")
 
 
 ########## Main #################
 
 # Prepare data
-start_date = datetime(2020, 1, 1).strftime('%Y%m%d')  # 回测开始时间
+start_date = datetime(2022, 1, 1).strftime('%Y%m%d')  # 回测开始时间
 # end_date = datetime(2022, 12, 16)  # 回测结束时间
 end_date = datetime.today().strftime('%Y%m%d')
 
@@ -237,23 +238,21 @@ end_date = datetime.today().strftime('%Y%m%d')
 # 002460 赣锋锂业
 
 # stocks_map = dict([('300568', '星源材质'), ('002460', '赣锋锂业'), ('000858', '五粮液'), ("000333", "美的"), ("603259", "药明"), 
-#                    ('300638', '广和'), ('002881', '美格'), ('603118', '共进'),('600507', '方大特钢'),('601088', '中国神华')]
-                #    )
-# stocks_map = dict([('300568', '星源材质')])
-# stocks_map = dict([('002460', '赣锋锂业')])
-# stocks_map = dict([('000858', '五粮液')])
-# stocks_map = dict([('000333', '美的')])
-# stocks_map = dict([('603259', '药明')])
-# stocks_map = dict([('300638', '广和')])
-stocks_map = dict([('603118', '共进')])
+#                    ('300638', '广和'), ('002881', '美格'), ('603118', '共进'),('600507', '方大特钢'),('601088', '中国神华'),('600660', '福耀玻璃')]
+#                    )
+stocks_map = dict([('sz300568', '星源材质'), ('sz002460', '赣锋锂业'), ('sz000858', '五粮液'), ("sz000333", "美的"), ("sh603259", "药明"), 
+                   ('sz300638', '广和'), ('sz002881', '美格'), ('sh603118', '共进'),('sh600507', '方大特钢'),('sh601088', '中国神华'),('sh600660', '福耀玻璃'),('sz000099', '中信海直')]
+                   )
 
 
 global stock
 global stock_name
 
 for stock in stocks_map.keys():
+    print(stock)
     stock_name = stocks_map[stock]
-    stock_hfq_df = ak.stock_zh_a_hist(symbol=stock, adjust="qfq", start_date=start_date, end_date=end_date).iloc[:, :6]  # 利用 AkShare 一行获取复权数据
+    # stock_hfq_df = ak.stock_zh_a_hist(symbol=stock, adjust="qfq", start_date=start_date, end_date=end_date).iloc[:, :6]  # 利用 AkShare 一行获取复权数据
+    stock_hfq_df = ak.stock_zh_a_daily(symbol=stock, adjust="qfq", start_date=start_date, end_date=end_date).iloc[:, :6]
     stock_hfq_df.columns = [
         'date',
         'open',
@@ -262,8 +261,6 @@ for stock in stocks_map.keys():
         'low',
         'volume',
     ]
-
-    # stock_hfq_df["stock"] = stock
 
     stock_hfq_df.index = pd.to_datetime(stock_hfq_df['date'])
 
@@ -313,7 +310,7 @@ for stock in stocks_map.keys():
 
     printTradeAnalysis(cerebro, result[0].analyzers)
 
-    cerebro.plot(style='candlestick', volume=True)  # 画图
+    # cerebro.plot(style='candlestick', volume=True)  # 画图
 
     # input('next')
     time.sleep(10)

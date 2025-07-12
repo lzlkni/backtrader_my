@@ -12,6 +12,12 @@ import send_email
 from PrintAnalyzer import *
 from datetime import date
 
+######
+# Change notes
+# 3.3 Add pre instrustion for buy/sell
+
+#####
+
 
 # macd > 0
 

@@ -11,7 +11,7 @@ class SendEmail:
     email_host = "smtp.qq.com"
     send_user = "lzl_kni@qq.com"
 
-    def send_mail(self, user_list, sub, content, attch):
+    def send_mail(self, user_list, sub, content, attch=None):
         user = send_user
         
         message = MIMEMultipart()
@@ -22,12 +22,12 @@ class SendEmail:
           # 邮件正文内容
         message.attach(MIMEText(content, 'plain', 'utf-8'))
         
-        
-        # 构造附件（附件为txt格式的文本）
-        att = MIMEText(open(attch, 'rb').read(), 'base64', 'utf-8')
-        att["Content-Type"] = 'application/octet-stream'
-        att["Content-Disposition"] = 'attachment; filename="result.csv"'
-        message.attach(att)
+        if attch:
+            # 构造附件（附件为txt格式的文本）
+            att = MIMEText(open(attch, 'rb').read(), 'base64', 'utf-8')
+            att["Content-Type"] = 'application/octet-stream'
+            att["Content-Disposition"] = 'attachment; filename="result.csv"'
+            message.attach(att)
 
 
         server = smtplib.SMTP_SSL(email_host.encode(), 465)
