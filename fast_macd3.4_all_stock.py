@@ -27,7 +27,7 @@ class InOutLine(bt.Indicator):
 
     def __init__(self):
         self.l.lowest = bt.ind.Lowest(self.data, period=self.p.low_period)        
-        self.l.upper = bt.ind.Highest(self.data, period=self.p.low_period)
+        self.l.upper = self.l.lowest * 1.5
 
 
 
@@ -116,34 +116,43 @@ class fast_macd_strtgy(bt.Strategy):
 
     def next(self):
 
+
         # print(self.data.datetime.date(0),  self.fastMacd.macd[0], self.fastMacd.signal[0], self.upCrossSignal.crossOver[0], self.fastMacd.histo[0], self.inOutLine.upper[0])
 
         if self.order:  # 检查是否有指令等待执行,
             return
         # 检查是否持仓
         if not self.position:  # 没有持仓
+            # if self.data_close[0] > self.sma[0]:  # 执行买入条件判断：收盘价格上涨突破20日均线
+
+            # if self.upCrossSignal.crossOver == 1 and self.fastMacd.macd[0] > 0.0 and self.fastMacd.signal[0] > 0.0:
+
+            # if self.upCrossSignal.crossOver == 1 and self.fastMacd.l.signal[0] > 0:
             
+
             
             if self.upCrossSignal.crossOver == 1 and self.fastMacd.l.signal[0] > 0: # If macd > 0            
-                self.log(f"{self.datas[0].datetime.date(0)} Buy tomorrow!")
+                # print(f"{self.datas[0].datetime.date(0)} Buy tomorrow!")
                 self.email_notify(f"{self.datas[0].datetime.date(0)} Buy tomorrow!")
 
                 self.order = self.buy()  # 执行买入
 
         else:
+            # if self.data_close[0] < self.sma[0]:  # 执行卖出条件判断：收盘价格跌破20日均线
+            # if self.upCrossSignal.crossOver == -1:
 
             # if highest > target revise out_point_down
             if self.data_high[0] >= self.out_point_up * 0.985:
                 out_point_down_chk = min(self.data_close[0], self.data_low[0], self.buy_price)
                 if out_point_down_chk > self.out_point_down:
                     self.out_point_down = out_point_down_chk
-                    self.log((f"Out point down revised to {self.out_point_down}"))
+                    # print((f"Out point down revised to {self.out_point_down}"))
                     self.email_notify(f"Out point down revised to {self.out_point_down}")
 
 
             if self.data_close[0] >= self.out_point_up or self.data_close[0] <= self.out_point_down:  
             # if self.data_high[0] >= self.out_point_up or self.data_high[0] <= self.out_point_down:
-                self.log(f"{self.datas[0].datetime.date(0)} Sell tomorrow!")
+                # print(f"{self.datas[0].datetime.date(0)} Sell tomorrow!")
                 self.email_notify(f"{self.datas[0].datetime.date(0)} Sell tomorrow!")
                 self.order = self.close()  # 执行卖出
 
@@ -157,7 +166,7 @@ class fast_macd_strtgy(bt.Strategy):
                 self.buy_price = order.executed.price
                 self.buy_comm = order.executed.comm
 
-                self.out_point_down = self.inOutLine.lowest[0] if self.inOutLine.lowest[0] <= self.buy_price else self.buy_price
+                self.out_point_down = self.inOutLine.lowest[0]
 
                 cat = 0
 
@@ -165,12 +174,10 @@ class fast_macd_strtgy(bt.Strategy):
                 
                 ###
                 # Set out point up
-                if std_scale < 0:
-                    self.out_point_up = self.inOutLine.upper[0]
-                
-                elif self.fastMacd.macd[0] > self.fastMacd.l.macd_highest[0] * 0.6:
+                if self.fastMacd.macd[0] > self.fastMacd.l.macd_highest[0] * 0.6:
                     self.out_point_up = self.buy_price + std_scale * 0.3
-                        
+                    cat = 1
+                    
                 elif self.fastMacd.macd[0] > self.fastMacd.l.macd_highest[0] * 0.3:
                     self.out_point_up = self.buy_price + std_scale * 0.5
                     cat =2
@@ -179,9 +186,7 @@ class fast_macd_strtgy(bt.Strategy):
                     self.out_point_up = self.buy_price + std_scale
                     cat = 3
 
-                diff_up_pct = (self.out_point_up - order.executed.price) / order.executed.price * 100 if order.executed.price else 0.0
-                msg = f"""{stock} Buy executed, Price: {order.executed.price: .2f}, Cost: {order.executed.value}, target: {self.out_point_up}, stop: {self.out_point_down}, diff_up_pct: {diff_up_pct:.2f}%, cat: {cat}, std_scale: {std_scale} """
-
+                msg = f"{stock} Buy executed, Price: {order.executed.price: .2f}, Cost: {order.executed.value}, Comm: {order.executed.comm}, target: {self.out_point_up}, stop: {self.out_point_down}, cat: {cat}, std_scale: {std_scale}"
                 self.log(msg)
                 self.email_notify(msg)
 
@@ -208,7 +213,7 @@ class fast_macd_strtgy(bt.Strategy):
             user_list = ['lzl_kni@qq.com']
             sub = "fmacd_execut"
             content = f"{dt.isoformat()} {stock} {stock_name} {txt}"
-            send.send_mail(user_list, sub, content)
+            # send.send_mail(user_list, sub, content)
 
     def notify_trade(self, trade):
         if not trade.isclosed:
@@ -218,42 +223,35 @@ class fast_macd_strtgy(bt.Strategy):
     def log(self, txt, dt=None, doprint=True):
         if doprint:
             dt = dt or self.datas[0].datetime.date(0)
-            if dt > (datetime.today() - timedelta(days=90)).date():
+            if dt > (datetime.today() - timedelta(days=300)).date():
                 print(f"{dt.isoformat()} {txt}")
 
-##################################
+
 ########## Main #################
-##################################
-
-
+print('start')
 # Prepare data
 start_date = datetime(2022, 1, 1).strftime('%Y%m%d')  # 回测开始时间
 # end_date = datetime(2022, 12, 16)  # 回测结束时间
 end_date = datetime.today().strftime('%Y%m%d')
 
+# 创建结果存储列表
+analysis_results = []
+
 # 300568 星源材质
 # 002460 赣锋锂业
+# 从CSV文件读取港股代码和名称
+stocks_df = pd.read_csv('stocks.csv')
+stocks_map = dict(zip(stocks_df['code'], stocks_df['name']))
 
-# stocks_map = dict([('300568', '星源材质'), ('002460', '赣锋锂业'), ('000858', '五粮液'), ("000333", "美的"), ("603259", "药明"), 
-#                    ('300638', '广和'), ('002881', '美格'), ('603118', '共进'),('600507', '方大特钢'),('601088', '中国神华'),('600660', '福耀玻璃')]
-#                    )
- 
-stocks_map = dict([('sz300568', '星源材质'), ('sz002460', '赣锋锂业'), ('sz000858', '五粮液'), ("sz000333", "美的"), ("sh603259", "药明"), 
-                   ('sz300638', '广和'), ('sz002881', '美格'), ('sh603118', '共进'),('sh600507', '方大特钢'),('sh601088', '中国神华'),('sh600660', '福耀玻璃'),('sz000099', '中信海直')]
-                   )
-
-# stocks_map = dict([ ('sz300750', '宁德时代')])
-# sh688598 金博股份
-# sh600580 卧龙电驱
 
 global stock
 global stock_name
 
 for stock in stocks_map.keys():
-    
+    print(stocks_map.get(stock))
     stock_name = stocks_map[stock]
-    # stock_hfq_df = ak.stock_zh_a_hist(symbol=stock, adjust="qfq", start_date=start_date, end_date=end_date).iloc[:, :6]  # 利用 AkShare 一行获取复权数据
-    stock_hfq_df = ak.stock_zh_a_daily(symbol=stock, adjust="qfq", start_date=start_date, end_date=end_date).iloc[:, :6]
+    stock_hfq_df = ak.stock_zh_a_daily(symbol=stock, adjust="qfq", start_date=start_date, end_date=end_date).iloc[:, :6]  # 利用 AkShare 获取A股复权数据
+    # stock_hfq_df = ak.stock_zh_a_hist(symbol='603777', adjust="qfq", start_date='20250301', end_date='20250305').iloc[:, :6]
     stock_hfq_df.columns = [
         'date',
         'open',
@@ -262,9 +260,13 @@ for stock in stocks_map.keys():
         'low',
         'volume',
     ]
+    pd.set_option('display.max_rows', None)
+    pd.set_option('display.max_columns', None)
+    
 
     stock_hfq_df.index = pd.to_datetime(stock_hfq_df['date'])
 
+    
     cerebro = bt.Cerebro()  # 初始化回测系统
     data = bt.feeds.PandasData(dataname=stock_hfq_df)  # 加载数据
 
@@ -273,7 +275,7 @@ for stock in stocks_map.keys():
     # cerebro.add_signal(bt.SIGNAL_LONGSHORT, UpCrossSignal)
     start_cash = 100000
     cerebro.broker.setcash(start_cash)  # 设置初始资本为 100000
-    cerebro.broker.setcommission(commission=0.002)  # 设置交易手续费为 0.2%
+    cerebro.broker.setcommission(commission=0.005)  # 设置港股交易手续费为 0.5%
     cerebro.broker.set_slippage_perc(0.0001)
 
     size = bt.sizers.AllInSizer
@@ -285,11 +287,11 @@ for stock in stocks_map.keys():
     # cerebro.addanalyzer(bt.analyzers.TradeAnalyzer, _name='TradeAnalyzer')
 
     cerebro.addanalyzer(bt.analyzers.TradeAnalyzer, _name='ta')
-    cerebro.addanalyzer(bt.analyzers.DrawDown, _name='drawdown')
+    cerebro.addanalyzer(bt.analyzers.DrawDown, _name='drawdown', fund=False)
     cerebro.addanalyzer(bt.analyzers.SharpeRatio, _name='sharpe', riskfreerate=0.02, annualize=True,
                         timeframe=bt.TimeFrame.Days)
     cerebro.addanalyzer(bt.analyzers.VWR, _name='vwr')
-    cerebro.addanalyzer(bt.analyzers.SQN, _name='sqn')
+    cerebro.addanalyzer(bt.analyzers.SQN, _name='sqn')    
     cerebro.addanalyzer(bt.analyzers.Transactions, _name='txn')
     cerebro.addanalyzer(bt.analyzers.VWR, _name='vwr')
     cerebro.addanalyzer(bt.analyzers.SQN, _name='sqn')
@@ -302,6 +304,48 @@ for stock in stocks_map.keys():
     print(f"初始资金: {start_cash}")
     print(f"总资金: {round(port_value, 2)}")
     print(f"净收益: {round(pnl, 2)}")
+    
+    # 获取分析结果
+    try:
+        sharpe_ratio = result[0].analyzers.sharpe.get_analysis().get('sharperatio', 0)
+    except:
+        sharpe_ratio = 0
+        
+    try:
+        drawdown_analysis = result[0].analyzers.drawdown.get_analysis()
+        max_drawdown = drawdown_analysis.get('max', {}).get('drawdown', 0)
+        max_moneydown = drawdown_analysis.get('max', {}).get('moneydown', 0)
+        max_drawdown_len = drawdown_analysis.get('max', {}).get('len', 0)
+        # 确保回撤值为正数（DrawDown返回的是负值）
+        if max_drawdown < 0:
+            max_drawdown = abs(max_drawdown)
+    except Exception as e:
+        print(f"获取回撤数据失败: {e}")
+        max_drawdown = 0
+        max_moneydown = 0
+        max_drawdown_len = 0
+        
+    try:
+        total_trades = len(result[0].analyzers.ta.get_analysis())
+    except:
+        total_trades = 0
+        
+    # 保存分析结果
+    analysis_result = {
+        '股票代码': stock,
+        '股票名称': stock_name,
+        '初始资金': start_cash,
+        '最终资金': round(port_value, 2),
+        '净收益': round(pnl, 2),
+        '收益率(%)': round(pnl/start_cash*100, 2),
+        '夏普比率': round(sharpe_ratio, 4),
+        '最大回撤(%)': round(max_drawdown, 2),
+        '最大回撤金额': round(max_moneydown, 2),
+        '最大回撤持续天数': max_drawdown_len,
+        '交易次数': total_trades
+    }
+    analysis_results.append(analysis_result)
+    
     # print('Sharp:', result[0].analyzers.SharpeRatio.get_analysis()['sharperatio'] )
     # print('DrawDown: ', result[0].analyzers.DrawDown.get_analysis()['max']['drawdown'])
     # ret = result[0].analyzers.AnnualReturn.get_analysis()
@@ -314,3 +358,60 @@ for stock in stocks_map.keys():
 
     # input('next')
     time.sleep(10)
+
+# 打印最终统计
+print(f"\n=== 分析完成 ===")
+print(f"总股票数: {len(stocks_map)}")
+print(f"成功分析: {len(analysis_results)}")
+print(f"分析失败: {len(stocks_map) - len(analysis_results)}")
+print(f"成功率: {len(analysis_results)/len(stocks_map)*100:.1f}%")
+
+# 保存分析结果到CSV文件
+if analysis_results:
+    try:
+        results_df = pd.DataFrame(analysis_results)
+        
+        # 过滤最大回撤小于20%的股票
+        results_df = results_df[results_df['最大回撤(%)'] < 20]
+        
+        # 按收益率、夏普比率、最大回撤排序（收益率降序，夏普比率降序，最大回撤升序）
+        results_df = results_df.sort_values(['收益率(%)', '夏普比率', '最大回撤(%)'], 
+                                          ascending=[False, False, True])
+        
+        # 保存到CSV文件
+        output_filename = f'all_stock_hk_analysis_results_{datetime.now().strftime("%Y%m%d_%H%M%S")}.csv'
+        results_df.to_csv(output_filename, index=False, encoding='utf-8-sig')
+        print(f"\n分析结果已保存到: {output_filename}")
+        
+        # 显示过滤后的统计信息
+        print(f"\n=== 过滤后统计 ===")
+        print(f"最大回撤<20%的股票数: {len(results_df)}")
+        print(f"过滤后成功率: {len(results_df)/len(stocks_map)*100:.1f}%")
+
+        # 发送邮件（综合排名前10名，所有字段）
+        try:
+            send = send_email.SendEmail()
+            user_list = ['lzl_kni@qq.com']
+            sub = "股票分析结果前10名（综合排名）"
+            # 只取前10名股票，包含所有字段
+            top_10 = results_df.head(10)
+            content = f"分析结果已保存到: {output_filename}\n\n"
+            content += f"最大回撤<20%的股票数: {len(results_df)}\n"
+            content += f"过滤后成功率: {len(results_df)/len(stocks_map)*100:.1f}%\n\n"
+            content += "综合排名前10名股票（按收益率、夏普比率、最大回撤排序）：\n\n"
+            content += top_10.to_string(index=False)
+            send.send_mail(user_list, sub, content)
+            print("综合排名前10名股票已通过邮件发送到 lzl_kni@qq.com")
+        except Exception as e:
+            print(f"发送邮件失败: {e}")
+        
+        # 显示前10名股票
+        print(f"\n=== 综合排名前10名股票（最大回撤<20%） ===")
+        top_10 = results_df.head(10)
+        for _, row in top_10.iterrows():
+            print(f"{row['股票代码']} {row['股票名称']}: 收益率{row['收益率(%)']}% 夏普比率{row['夏普比率']} 最大回撤{row['最大回撤(%)']}% 回撤持续{row['最大回撤持续天数']}天")
+            
+    except Exception as e:
+        print(f"保存结果时发生错误: {e}")
+else: 
+    print("没有成功分析任何股票")
