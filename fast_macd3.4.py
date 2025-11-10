@@ -1,5 +1,10 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
 from datetime import datetime, timedelta
 import time
+import argparse
+import os
 
 import backtrader as bt
 # import matplotlib.pyplot as plt
@@ -88,8 +93,8 @@ class UpCrossSignal(bt.Indicator):
 
 
 class fast_macd_strtgy(bt.Strategy):
-    # params = (("fast_length", 12), ("slow_length", 26), ("signal_length", 9))
-
+    params = (('stock_code', ''), ('stock_name', ''))
+    
     def __init__(self):
         self.sma = bt.indicators.SimpleMovingAverage(
             self.datas[0], period=120
@@ -113,6 +118,10 @@ class fast_macd_strtgy(bt.Strategy):
 
         self.out_point_up = None
         self.out_point_down = None
+        
+        # 存储股票信息
+        self.stock_code = self.params.stock_code
+        self.stock_name = self.params.stock_name
 
     def next(self):
 
@@ -122,11 +131,26 @@ class fast_macd_strtgy(bt.Strategy):
             return
         # 检查是否持仓
         if not self.position:  # 没有持仓
-            
-            
-            if self.upCrossSignal.crossOver == 1 and self.fastMacd.l.signal[0] > 0: # If macd > 0            
-                self.log(f"{self.datas[0].datetime.date(0)} Buy tomorrow!")
-                self.email_notify(f"{self.datas[0].datetime.date(0)} Buy tomorrow!")
+
+
+
+            if self.upCrossSignal.crossOver == 1 and self.fastMacd.l.signal[0] > 0: # If macd > 0        
+
+                # 使用共用方法计算止盈止损
+                current_price = self.data_close[0]
+                estimated_out_point_up, estimated_out_point_down, estimated_return, estimated_stop_loss, cat, std_scale = self.calculate_stop_loss_target(current_price)    
+                
+                # 风险控制：如果止损损失大于收益，不买入
+                # if abs(estimated_stop_loss) > estimated_return:
+                #     msg = f"{self.datas[0].datetime.date(0)} Risk control: Skip buy! Est. Return: {estimated_return:.2f}% < Est. Stop Loss: {estimated_stop_loss:.2f}%, Current Price: {current_price:.2f}"
+                #     self.log(msg)
+                #     self.email_notify(msg)
+                #     return
+                
+                msg = f"Buy tomorrow! Current Price: {current_price:.2f}, Est. Target: {estimated_out_point_up:.2f}, Est. Stop: {estimated_out_point_down:.2f}, Est. Return: {estimated_return:.2f}%, Est. Stop Loss: {estimated_stop_loss:.2f}%, Cat: {cat}"
+                
+                self.log(msg)
+                self.email_notify(msg)
 
                 self.order = self.buy()  # 执行买入
 
@@ -157,37 +181,17 @@ class fast_macd_strtgy(bt.Strategy):
                 self.buy_price = order.executed.price
                 self.buy_comm = order.executed.comm
 
-                self.out_point_down = self.inOutLine.lowest[0] if self.inOutLine.lowest[0] <= self.buy_price else self.buy_price
-
-                cat = 0
-
-                std_scale =   (self.buy_price - self.inOutLine.lowest[0]) * 1.5
+                # 使用共用方法计算止盈止损
+                self.out_point_up, self.out_point_down, expected_return, stop_loss_return, cat, std_scale = self.calculate_stop_loss_target(self.buy_price)
                 
-                ###
-                # Set out point up
-                if std_scale < 0:
-                    self.out_point_up = self.inOutLine.upper[0]
-                
-                elif self.fastMacd.macd[0] > self.fastMacd.l.macd_highest[0] * 0.6:
-                    self.out_point_up = self.buy_price + std_scale * 0.3
-                        
-                elif self.fastMacd.macd[0] > self.fastMacd.l.macd_highest[0] * 0.3:
-                    self.out_point_up = self.buy_price + std_scale * 0.5
-                    cat =2
-                    
-                else:
-                    self.out_point_up = self.buy_price + std_scale
-                    cat = 3
-
-                diff_up_pct = (self.out_point_up - order.executed.price) / order.executed.price * 100 if order.executed.price else 0.0
-                msg = f"""{stock} Buy executed, Price: {order.executed.price: .2f}, Cost: {order.executed.value}, target: {self.out_point_up}, stop: {self.out_point_down}, diff_up_pct: {diff_up_pct:.2f}%, cat: {cat}, std_scale: {std_scale} """
+                msg = f"""{self.stock_code} Buy executed, Price: {order.executed.price: .2f}, Cost: {order.executed.value}, target: {self.out_point_up:.2f}, stop: {self.out_point_down:.2f}, expected_return: {expected_return:.2f}%, stop_loss: {stop_loss_return:.2f}%, cat: {cat}, std_scale: {std_scale:.2f} """
 
                 self.log(msg)
                 self.email_notify(msg)
 
             else:
                 self.log(
-                    f"{stock} Sell executed, Price: {order.executed.price: .2f}, Cost: {order.executed.value}, Comm：{order.executed.comm}"
+                    f"{self.stock_code} Sell executed, Price: {order.executed.price: .2f}, Cost: {order.executed.value}, Comm：{order.executed.comm}"
                 )
                 self.email_notify(f"Sell executed, Price: {order.executed.price: .2f}, Cost: {order.executed.value}, Comm：{order.executed.comm}")
             self.bar_executed = len(self)
@@ -207,110 +211,236 @@ class fast_macd_strtgy(bt.Strategy):
             send = send_email.SendEmail()
             user_list = ['lzl_kni@qq.com']
             sub = "fmacd_execut"
-            content = f"{dt.isoformat()} {stock} {stock_name} {txt}"
+            content = f"{dt.isoformat()} {self.stock_code} {self.stock_name} {txt}"
             send.send_mail(user_list, sub, content)
+
+    def calculate_stop_loss_target(self, current_price):
+        """
+        计算止盈止损价格和收益率
+        返回: (out_point_up, out_point_down, expected_return, stop_loss_return, cat, std_scale)
+        """
+        out_point_down = self.inOutLine.lowest[0] if self.inOutLine.lowest[0] <= current_price else current_price
+        std_scale = (current_price - self.inOutLine.lowest[0]) * 1.5
+        cat = 0
+        
+        # 设置止盈价格
+        if std_scale < 0:
+            out_point_up = self.inOutLine.upper[0]
+        elif self.fastMacd.macd[0] > self.fastMacd.l.macd_highest[0] * 0.6:
+            out_point_up = current_price + std_scale * 0.3
+        elif self.fastMacd.macd[0] > self.fastMacd.l.macd_highest[0] * 0.3:
+            out_point_up = current_price + std_scale * 0.5
+            cat = 2
+        else:
+            out_point_up = current_price + std_scale
+            cat = 3
+        
+        # 计算收益率
+        expected_return = (out_point_up - current_price) / current_price * 100 if current_price else 0.0
+        stop_loss_return = (out_point_down - current_price) / current_price * 100 if current_price else 0.0
+        
+        return out_point_up, out_point_down, expected_return, stop_loss_return, cat, std_scale
 
     def notify_trade(self, trade):
         if not trade.isclosed:
             return
-        self.log(f"Operation profit, Gross {trade.pnl}, Net: {trade.pnlcomm}")
+        
+        # 计算收益率
+        if trade.pnl and trade.value:
+            return_rate = (trade.pnl / trade.value) * 100
+            self.log(f"Operation profit, Gross {trade.pnl:.2f}, Net: {trade.pnlcomm:.2f}, Return Rate: {return_rate:.2f}%")
+        else:
+            self.log(f"Operation profit, Gross {trade.pnl}, Net: {trade.pnlcomm}")
 
     def log(self, txt, dt=None, doprint=True):
         if doprint:
             dt = dt or self.datas[0].datetime.date(0)
             if dt > (datetime.today() - timedelta(days=90)).date():
-                print(f"{dt.isoformat()} {txt}")
+                print(f"{datetime.today().strftime('%Y-%m-%d')} {dt.isoformat()} {txt}")
+
+def load_stocks_from_file(filename):
+    """
+    从文件读取股票列表
+    文件格式：每行一个股票，格式为 "股票代码,股票名称" 或 "股票代码"
+    例如：
+    sz300568,星源材质
+    sz002460,赣锋锂业
+    sz000858,五粮液
+    """
+    stocks_map = {}
+    
+    if not os.path.exists(filename):
+        print(f"错误：文件 {filename} 不存在")
+        return stocks_map
+    
+    try:
+        with open(filename, 'r', encoding='utf-8-sig') as f:  # 使用 utf-8-sig 自动处理BOM
+            for line_num, line in enumerate(f, 1):
+                line = line.strip()
+                if not line or line.startswith('#'):  # 跳过空行和注释行
+                    continue
+                
+                # 去除BOM字符
+                line = line.replace('\ufeff', '')
+                
+                parts = line.split(',')
+                if len(parts) >= 2:
+                    # 格式：股票代码,股票名称
+                    stock_code = parts[0].strip()
+                    stock_name = parts[1].strip()
+                    # 确保股票代码不为空且不是注释
+                    if stock_code and not stock_code.startswith('#'):
+                        stocks_map[stock_code] = stock_name
+                elif len(parts) == 1:
+                    # 格式：只有股票代码
+                    stock_code = parts[0].strip()
+                    # 确保股票代码不为空且不是注释
+                    if stock_code and not stock_code.startswith('#'):
+                        stocks_map[stock_code] = stock_code  # 使用代码作为名称
+                else:
+                    print(f"警告：第{line_num}行格式不正确，跳过：{line}")
+        
+        print(f"成功从 {filename} 加载了 {len(stocks_map)} 只股票")
+        
+        return stocks_map
+        
+    except Exception as e:
+        print(f"读取文件 {filename} 时出错：{e}")
+        return {}
+
+
+
+
+
+
 
 ##################################
 ########## Main #################
 ##################################
 
-
-# Prepare data
-start_date = datetime(2022, 1, 1).strftime('%Y%m%d')  # 回测开始时间
-# end_date = datetime(2022, 12, 16)  # 回测结束时间
-end_date = datetime.today().strftime('%Y%m%d')
-
-# 300568 星源材质
-# 002460 赣锋锂业
-
-# stocks_map = dict([('300568', '星源材质'), ('002460', '赣锋锂业'), ('000858', '五粮液'), ("000333", "美的"), ("603259", "药明"), 
-#                    ('300638', '广和'), ('002881', '美格'), ('603118', '共进'),('600507', '方大特钢'),('601088', '中国神华'),('600660', '福耀玻璃')]
-#                    )
- 
-stocks_map = dict([('sz300568', '星源材质'), ('sz002460', '赣锋锂业'), ('sz000858', '五粮液'), ("sz000333", "美的"), ("sh603259", "药明"), 
-                   ('sz300638', '广和'), ('sz002881', '美格'), ('sh603118', '共进'),('sh600507', '方大特钢'),('sh601088', '中国神华'),('sh600660', '福耀玻璃'),('sz000099', '中信海直')]
-                   )
-
-# stocks_map = dict([ ('sz300750', '宁德时代')])
-# sh688598 金博股份
-# sh600580 卧龙电驱
-
-global stock
-global stock_name
-
-for stock in stocks_map.keys():
+def main():
+    # 设置命令行参数
+    parser = argparse.ArgumentParser(description='股票回测系统')
+    parser.add_argument('--stocks_file', '-f', type=str, default='',
+                       help='股票列表文件路径 (默认: stocks.csv)')
+    parser.add_argument('--start_date', '-s', type=str, default='20220101',
+                       help='回测开始日期 (格式: YYYYMMDD, 默认: 20220101)')
+    parser.add_argument('--end_date', '-e', type=str, default=datetime.today().strftime('%Y%m%d'),
+                       help='回测结束日期 (格式: YYYYMMDD, 默认: 今天)')
     
-    stock_name = stocks_map[stock]
-    # stock_hfq_df = ak.stock_zh_a_hist(symbol=stock, adjust="qfq", start_date=start_date, end_date=end_date).iloc[:, :6]  # 利用 AkShare 一行获取复权数据
-    stock_hfq_df = ak.stock_zh_a_daily(symbol=stock, adjust="qfq", start_date=start_date, end_date=end_date).iloc[:, :6]
-    stock_hfq_df.columns = [
-        'date',
-        'open',
-        'close',
-        'high',
-        'low',
-        'volume',
-    ]
+    args = parser.parse_args()
+    
+    # 准备数据
+    start_date = args.start_date
+    end_date = args.end_date
 
-    stock_hfq_df.index = pd.to_datetime(stock_hfq_df['date'])
+    # 从文件加载股票列表
+    stocks_map = load_stocks_from_file(args.stocks_file)
+    
+    
+    # 如果没有指定文件或文件为空，使用默认股票列表
+    if not stocks_map:
+        print("使用默认股票列表")
+        stocks_map = {
+            'sz001221': '悍高集团'
+            # 'sz000592': '平潭发展',
+            # 'sz300568': '星源材质', 
+            # 'sz002460': '赣锋锂业', 
+            # 'sz000858': '五粮液', 
+            # 'sz000333': '美的', 
+            # 'sh603259': '药明',
+            # 'sz300638': '广和', 
+            # 'sz002881': '美格', 
+            # 'sh603118': '共进',
+            # 'sh600507': '方大特钢',
+            # 'sh601088': '中国神华',
+            # 'sz300654': '世纪天鸿',
+            # 'sh603011': '合锻智能',
+            # 'sh688095': '福昕软件',        
+            # 'sh600895': '张江高科',
+            # 'sh600119': '长江投资',
+            # 'sz301308': '江波龙',
+            # 'sh688425': '铁建重工'
+        }
+        
 
-    cerebro = bt.Cerebro()  # 初始化回测系统
-    data = bt.feeds.PandasData(dataname=stock_hfq_df)  # 加载数据
+    for stock_code in stocks_map.keys():
+        
+        stock_name = stocks_map[stock_code]
+        # stock_hfq_df = ak.stock_zh_a_hist(symbol=stock, adjust="qfq", start_date=start_date, end_date=end_date).iloc[:, :6]  # 利用 AkShare 一行获取复权数据
+        
+        stock_hfq_df = ak.stock_zh_a_daily(symbol=stock_code, adjust="qfq", start_date=start_date, end_date=end_date).iloc[:, :6]
+        if len(stock_hfq_df) < 30:
+            print(f"{stock_code} {stock_name} 行数少于30，跳过。")
+            continue
+        stock_hfq_df.columns = [
+            'date',
+            'open',
+            'close',
+            'high',
+            'low',
+            'volume',
+        ]
 
-    cerebro.adddata(data)  # 将数据传入回测系统
-    cerebro.addstrategy(fast_macd_strtgy)
-    # cerebro.add_signal(bt.SIGNAL_LONGSHORT, UpCrossSignal)
-    start_cash = 100000
-    cerebro.broker.setcash(start_cash)  # 设置初始资本为 100000
-    cerebro.broker.setcommission(commission=0.002)  # 设置交易手续费为 0.2%
-    cerebro.broker.set_slippage_perc(0.0001)
+        stock_hfq_df.index = pd.to_datetime(stock_hfq_df['date'])
 
-    size = bt.sizers.AllInSizer
-    cerebro.addsizer(bt.sizers.AllInSizer, percents=95)
-    #
-    # cerebro.addanalyzer(bt.analyzers.SharpeRatio, _name='SharpeRatio')
-    # cerebro.addanalyzer(bt.analyzers.DrawDown, _name='DrawDown')
-    # cerebro.addanalyzer(bt.analyzers.AnnualReturn, _name='AnnualReturn')
-    # cerebro.addanalyzer(bt.analyzers.TradeAnalyzer, _name='TradeAnalyzer')
+        cerebro = bt.Cerebro()  # 初始化回测系统
+        data = bt.feeds.PandasData(dataname=stock_hfq_df)  # 加载数据
 
-    cerebro.addanalyzer(bt.analyzers.TradeAnalyzer, _name='ta')
-    cerebro.addanalyzer(bt.analyzers.DrawDown, _name='drawdown')
-    cerebro.addanalyzer(bt.analyzers.SharpeRatio, _name='sharpe', riskfreerate=0.02, annualize=True,
-                        timeframe=bt.TimeFrame.Days)
-    cerebro.addanalyzer(bt.analyzers.VWR, _name='vwr')
-    cerebro.addanalyzer(bt.analyzers.SQN, _name='sqn')
-    cerebro.addanalyzer(bt.analyzers.Transactions, _name='txn')
-    cerebro.addanalyzer(bt.analyzers.VWR, _name='vwr')
-    cerebro.addanalyzer(bt.analyzers.SQN, _name='sqn')
+        cerebro.adddata(data)  # 将数据传入回测系统
+        cerebro.addstrategy(fast_macd_strtgy, stock_code=stock_code, stock_name=stock_name)
+        # cerebro.add_signal(bt.SIGNAL_LONGSHORT, UpCrossSignal)
+        start_cash = 100000
+        cerebro.broker.setcash(start_cash)  # 设置初始资本为 100000
+        cerebro.broker.setcommission(commission=0.002)  # 设置交易手续费为 0.2%
+        cerebro.broker.set_slippage_perc(0.0001)
 
-    result = cerebro.run()
-    port_value = cerebro.broker.getvalue()  # 获取回测结束后的总资金
-    pnl = port_value - start_cash  # 盈亏统计
+        size = bt.sizers.AllInSizer
+        cerebro.addsizer(bt.sizers.AllInSizer, percents=95)
+        #
+        # cerebro.addanalyzer(bt.analyzers.SharpeRatio, _name='SharpeRatio')
+        # cerebro.addanalyzer(bt.analyzers.DrawDown, _name='DrawDown')
+        # cerebro.addanalyzer(bt.analyzers.AnnualReturn, _name='AnnualReturn')
+        # cerebro.addanalyzer(bt.analyzers.TradeAnalyzer, _name='TradeAnalyzer')
 
-    print(f"Stock: {stocks_map[stock]}")
-    print(f"初始资金: {start_cash}")
-    print(f"总资金: {round(port_value, 2)}")
-    print(f"净收益: {round(pnl, 2)}")
-    # print('Sharp:', result[0].analyzers.SharpeRatio.get_analysis()['sharperatio'] )
-    # print('DrawDown: ', result[0].analyzers.DrawDown.get_analysis()['max']['drawdown'])
-    # ret = result[0].analyzers.AnnualReturn.get_analysis()
-    # print('AnnualReturn: ', result[0].analyzers.AnnualReturn.get_analysis())
-    # print('TradeAnalyzer: ', result[0].analyzers.TradeAnalyzer.get_analysis())
+        cerebro.addanalyzer(bt.analyzers.TradeAnalyzer, _name='ta')
+        cerebro.addanalyzer(bt.analyzers.DrawDown, _name='drawdown')
+        cerebro.addanalyzer(bt.analyzers.SharpeRatio, _name='sharpe', riskfreerate=0.02, annualize=True,
+                            timeframe=bt.TimeFrame.Days)
+        cerebro.addanalyzer(bt.analyzers.VWR, _name='vwr')
+        cerebro.addanalyzer(bt.analyzers.SQN, _name='sqn')
+        cerebro.addanalyzer(bt.analyzers.Transactions, _name='txn')
+        cerebro.addanalyzer(bt.analyzers.Returns, _name='returns')
+        cerebro.addanalyzer(bt.analyzers.AnnualReturn, _name='annual_return')
+        cerebro.addanalyzer(bt.analyzers.TimeReturn, _name='time_return')
 
-    printTradeAnalysis(cerebro, result[0].analyzers)
+        result = cerebro.run()
+        port_value = cerebro.broker.getvalue()  # 获取回测结束后的总资金
+        pnl = port_value - start_cash  # 盈亏统计
 
-    # cerebro.plot(style='candlestick', volume=True)  # 画图
+        print(f"Stock: {stock_name}")
+        print(f"初始资金: {start_cash}")
+        print(f"总资金: {round(port_value, 2)}")
+        print(f"净收益: {round(pnl, 2)}")
 
-    # input('next')
-    time.sleep(10)
+        # SQN值解释：
+        # SQN > 2.0: 优秀的交易系统
+        # SQN 1.6 - 2.0: 良好的交易系统
+        # SQN 1.0 - 1.6: 一般的交易系统
+        # SQN < 1.0: 较差的交易系统
+
+        printTradeAnalysis(cerebro, result[0].analyzers)
+        # 计算并显示最大回撤
+        drawdown_analysis = result[0].analyzers.drawdown.get_analysis()
+        max_drawdown = drawdown_analysis['max']['drawdown']
+        max_drawdown_len = drawdown_analysis['max']['len']
+        print(f"最大回撤: {max_drawdown:.2f}%")
+        print(f"最大回撤持续时间: {max_drawdown_len} 天")
+
+        # cerebro.plot(style='candlestick', volume=True)  # 画图
+
+        
+        time.sleep(10)
+
+if __name__ == "__main__":
+    main()

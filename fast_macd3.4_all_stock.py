@@ -239,8 +239,15 @@ analysis_results = []
 
 # 300568 星源材质
 # 002460 赣锋锂业
-# 从CSV文件读取港股代码和名称
-stocks_df = pd.read_csv('stocks.csv')
+# 从CSV文件读取股票代码与名称（文件无表头，含注释行）
+stocks_df = pd.read_csv(
+    'stocks.csv',
+    header=None,
+    names=['code', 'name'],
+    comment='#',
+)
+stocks_df['code'] = stocks_df['code'].astype(str).str.strip()
+stocks_df['name'] = stocks_df['name'].astype(str).str.strip()
 stocks_map = dict(zip(stocks_df['code'], stocks_df['name']))
 
 
@@ -251,7 +258,11 @@ for stock in stocks_map.keys():
     print(stocks_map.get(stock))
     stock_name = stocks_map[stock]
     stock_hfq_df = ak.stock_zh_a_daily(symbol=stock, adjust="qfq", start_date=start_date, end_date=end_date).iloc[:, :6]  # 利用 AkShare 获取A股复权数据
-    # stock_hfq_df = ak.stock_zh_a_hist(symbol='603777', adjust="qfq", start_date='20250301', end_date='20250305').iloc[:, :6]
+    if len(stock_hfq_df) < 30:
+        print(f"{stock_code} {stock_name} 行数少于30，跳过。")
+        continue    
+
+
     stock_hfq_df.columns = [
         'date',
         'open',
@@ -307,18 +318,27 @@ for stock in stocks_map.keys():
     
     # 获取分析结果
     try:
-        sharpe_ratio = result[0].analyzers.sharpe.get_analysis().get('sharperatio', 0)
+        sharpe_analysis = result[0].analyzers.sharpe.get_analysis()
+        if sharpe_analysis is not None:
+            sharpe_ratio = sharpe_analysis.get('sharperatio', 0)
+        else:
+            sharpe_ratio = 0
     except:
         sharpe_ratio = 0
         
     try:
         drawdown_analysis = result[0].analyzers.drawdown.get_analysis()
-        max_drawdown = drawdown_analysis.get('max', {}).get('drawdown', 0)
-        max_moneydown = drawdown_analysis.get('max', {}).get('moneydown', 0)
-        max_drawdown_len = drawdown_analysis.get('max', {}).get('len', 0)
-        # 确保回撤值为正数（DrawDown返回的是负值）
-        if max_drawdown < 0:
-            max_drawdown = abs(max_drawdown)
+        if drawdown_analysis is not None:
+            max_drawdown = drawdown_analysis.get('max', {}).get('drawdown', 0)
+            max_moneydown = drawdown_analysis.get('max', {}).get('moneydown', 0)
+            max_drawdown_len = drawdown_analysis.get('max', {}).get('len', 0)
+            # 确保回撤值为正数（DrawDown返回的是负值）
+            if max_drawdown < 0:
+                max_drawdown = abs(max_drawdown)
+        else:
+            max_drawdown = 0
+            max_moneydown = 0
+            max_drawdown_len = 0
     except Exception as e:
         print(f"获取回撤数据失败: {e}")
         max_drawdown = 0
@@ -326,7 +346,11 @@ for stock in stocks_map.keys():
         max_drawdown_len = 0
         
     try:
-        total_trades = len(result[0].analyzers.ta.get_analysis())
+        ta_analysis = result[0].analyzers.ta.get_analysis()
+        if ta_analysis is not None:
+            total_trades = len(ta_analysis)
+        else:
+            total_trades = 0
     except:
         total_trades = 0
         
@@ -400,7 +424,7 @@ if analysis_results:
             content += f"过滤后成功率: {len(results_df)/len(stocks_map)*100:.1f}%\n\n"
             content += "综合排名前10名股票（按收益率、夏普比率、最大回撤排序）：\n\n"
             content += top_10.to_string(index=False)
-            send.send_mail(user_list, sub, content)
+            # send.send_mail(user_list, sub, content)
             print("综合排名前10名股票已通过邮件发送到 lzl_kni@qq.com")
         except Exception as e:
             print(f"发送邮件失败: {e}")
