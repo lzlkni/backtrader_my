@@ -3,10 +3,156 @@ import pandas as pd
 from datetime import datetime, timedelta
 import time
 
+
+def _extract_earliest_trade_date(stock_hist_df):
+    """
+    从历史数据 DataFrame 中提取最早的交易日期
+    """
+    earliest_date = None
+
+    if isinstance(stock_hist_df.index, pd.DatetimeIndex):
+        earliest_date = stock_hist_df.index.min()
+    elif hasattr(stock_hist_df.index, 'dtype') and pd.api.types.is_datetime64_any_dtype(stock_hist_df.index):
+        earliest_date = pd.to_datetime(stock_hist_df.index).min()
+
+    if earliest_date is None and not stock_hist_df.empty:
+        first_col = stock_hist_df.columns[0]
+        try:
+            dates = pd.to_datetime(stock_hist_df[first_col], errors='coerce').dropna()
+            if not dates.empty:
+                earliest_date = dates.min()
+        except Exception:
+            pass
+
+    if earliest_date is None and '日期' in stock_hist_df.columns:
+        try:
+            dates = pd.to_datetime(stock_hist_df['日期'], errors='coerce').dropna()
+            if not dates.empty:
+                earliest_date = dates.min()
+        except Exception:
+            pass
+
+    if earliest_date is None:
+        for col in stock_hist_df.columns:
+            try:
+                dates = pd.to_datetime(stock_hist_df[col], errors='coerce').dropna()
+                if not dates.empty:
+                    valid_dates = dates[
+                        (dates >= pd.Timestamp('1900-01-01')) & (dates <= pd.Timestamp('2100-01-01'))
+                    ]
+                    if not valid_dates.empty:
+                        earliest_date = valid_dates.min()
+                        break
+            except Exception:
+                continue
+
+    if earliest_date is None:
+        return None
+
+    if isinstance(earliest_date, pd.Timestamp):
+        return earliest_date.to_pydatetime()
+
+    try:
+        return pd.to_datetime(earliest_date).to_pydatetime()
+    except Exception:
+        return None
+
+
+def filter_new_stock(stock_code: str, stock_name: str, cutoff_date: datetime, start_date: str, end_date: str):
+    """
+    判断股票是否通过新股过滤
+
+    :return: (是否通过, 最早日期, 失败原因)
+             失败原因: None / 'no_data' / 'no_date' / 'too_new' / 'error:<message>'
+    """
+    stock_code = str(stock_code).zfill(6)
+    stock_code_with_prefix = 'sh' + stock_code if stock_code.startswith('6') else 'sz' + stock_code
+
+    try:
+        stock_hist_df = ak.stock_zh_a_daily(
+            symbol=stock_code_with_prefix,
+            adjust="qfq",
+            start_date=start_date,
+            end_date=end_date
+        )
+    except Exception as exc:
+        return False, None, f"error:{exc}"
+
+    if stock_hist_df.empty:
+        return False, None, 'no_data'
+
+    earliest_date = _extract_earliest_trade_date(stock_hist_df)
+
+    if earliest_date is None:
+        return False, None, 'no_date'
+
+    if earliest_date <= cutoff_date:
+        return True, earliest_date, None
+
+    return False, earliest_date, 'too_new'
+
+
+def prepare_sector_top_stocks(sector_stocks, sector_name, sector_code, cutoff_date, start_date, end_date):
+    """
+    对板块股票列表进行新股过滤并返回最终的前10只股票 DataFrame
+    """
+    if sector_stocks.empty:
+        print(f"板块 '{sector_name}' 没有股票数据，跳过")
+        return None
+
+    filtered_rows = []
+    new_stock_filtered = 0
+    error_filtered = 0
+
+    for _, stock_row in sector_stocks.iterrows():
+        raw_code = str(stock_row['代码']).zfill(6)
+        stock_label = f"{raw_code} {stock_row['名称']}"
+        is_valid, earliest_date, reason = filter_new_stock(
+            stock_code=raw_code,
+            stock_name=stock_row['名称'],
+            cutoff_date=cutoff_date,
+            start_date=start_date,
+            end_date=end_date
+        )
+
+        if is_valid:
+            filtered_rows.append(stock_row.copy())
+        else:
+            new_stock_filtered += 1
+            if reason and reason.startswith('error:'):
+                error_filtered += 1
+                if error_filtered <= 3:
+                    error_message = reason.split('error:', 1)[1]
+                    print(f"  警告: {stock_label} 获取历史数据失败: {error_message}")
+            else:
+                if new_stock_filtered <= 3:
+                    if reason == 'no_data':
+                        print(f"  过滤新股（无历史数据）: {stock_label}")
+                    elif reason == 'no_date':
+                        print(f"  过滤新股（无法解析日期）: {stock_label}")
+                    elif reason == 'too_new' and earliest_date is not None:
+                        print(f"  过滤新股: {stock_label} 最早数据日期: {earliest_date.strftime('%Y-%m-%d')}")
+
+        time.sleep(0.05)
+
+        if len(filtered_rows) >= 10:
+            break
+
+    if not filtered_rows:
+        print(f"板块 '{sector_name}' 过滤新股后没有符合条件的股票，跳过")
+        return None
+
+    top_10_stocks = pd.DataFrame(filtered_rows).head(10).copy()
+    top_10_stocks['板块名称'] = sector_name
+    top_10_stocks['板块代码'] = sector_code
+
+    return top_10_stocks
+
+
 def get_all_stocks():
     """
-    获取A股所有股票代码和名称，过滤掉ST股票和上市时间少于1个月的新股
-    通过读取股票历史数据，如果有大于一个月前的数据则为非新股
+    获取A股所有股票代码和名称，过滤掉ST股票和上市时间少于1年的新股
+    通过读取股票历史数据，如果有大于1年前的数据则为非新股
     """
     # 获取A股所有股票代码和名称
     stock_info = ak.stock_info_a_code_name()
@@ -17,14 +163,14 @@ def get_all_stocks():
     # 处理股票代码为6位格式（暂时不添加前缀，用于查询历史数据）
     stock_info['code_raw'] = stock_info['code'].str.zfill(6)
     
-    # 计算1个月前的日期
-    one_month_ago = datetime.now() - timedelta(days=30)
-    print(f"过滤条件：历史数据最早日期早于 {one_month_ago.strftime('%Y-%m-%d')}")
+    # 计算1年前的日期
+    one_year_ago = datetime.now() - timedelta(days=365)
+    print(f"过滤条件：历史数据最早日期早于 {one_year_ago.strftime('%Y-%m-%d')}")
     
     # 获取历史数据的开始日期（设置为6个月前，确保能获取到足够的历史数据来判断是否为新股）
-    # 对于新股判断，我们只需要知道是否有1个月前的数据
+    # 对于新股判断，我们只需要知道是否有1年前的数据
     # 但获取更长时间范围的数据可以提高准确性
-    start_date = (datetime.now() - timedelta(days=180)).strftime('%Y%m%d')
+    start_date = (datetime.now() - timedelta(days=400)).strftime('%Y%m%d')
     end_date = datetime.now().strftime('%Y%m%d')
     
     print(f"\n开始检查 {len(stock_info)} 只股票的历史数据...")
@@ -46,96 +192,39 @@ def get_all_stocks():
             print(f"进度: {processed_count}/{total_count} ({processed_count*100/total_count:.1f}%), 已过滤新股: {new_stock_count}, 失败: {failed_count}")
         
         try:
-            # 给股票代码加上前缀（sh或sz）
-            stock_code_with_prefix = 'sh' + stock_code if stock_code.startswith('6') else 'sz' + stock_code
-            
-            # 使用stock_zh_a_daily获取A股历史数据
-            stock_hist_df = ak.stock_zh_a_daily(symbol=stock_code_with_prefix, adjust="qfq", start_date=start_date, end_date=end_date)
-            
-            # 检查数据是否为空
-            if stock_hist_df.empty:
-                # 仍然没有数据，可能是新股，过滤掉
-                new_stock_count += 1
-                if new_stock_count <= 10:  # 只显示前10只被过滤的新股
-                    print(f"  过滤新股（无历史数据）: {stock_code} {stock_name}")
-                continue
-            
-            # 获取历史数据的日期
-            # akshare返回的数据，日期可能在索引中，也可能在第一列
-            earliest_date = None
-            
-            # 方法1: 检查索引是否为日期类型
-            if isinstance(stock_hist_df.index, pd.DatetimeIndex):
-                earliest_date = stock_hist_df.index.min()
-            elif hasattr(stock_hist_df.index, 'dtype') and pd.api.types.is_datetime64_any_dtype(stock_hist_df.index):
-                earliest_date = pd.to_datetime(stock_hist_df.index).min()
-            
-            # 方法2: 检查第一列是否为日期
-            if earliest_date is None:
-                first_col = stock_hist_df.columns[0]
-                try:
-                    # 尝试将第一列转换为日期
-                    dates = pd.to_datetime(stock_hist_df[first_col], errors='coerce')
-                    dates = dates.dropna()
-                    if not dates.empty:
-                        earliest_date = dates.min()
-                except:
-                    pass
-            
-            # 方法3: 检查是否有名为'日期'的列
-            if earliest_date is None and '日期' in stock_hist_df.columns:
-                try:
-                    dates = pd.to_datetime(stock_hist_df['日期'], errors='coerce')
-                    dates = dates.dropna()
-                    if not dates.empty:
-                        earliest_date = dates.min()
-                except:
-                    pass
-            
-            # 如果还是找不到日期，尝试查找所有可能是日期的列
-            if earliest_date is None:
-                for col in stock_hist_df.columns:
-                    try:
-                        dates = pd.to_datetime(stock_hist_df[col], errors='coerce')
-                        dates = dates.dropna()
-                        if not dates.empty:
-                            # 检查日期是否合理（在1900年到2100年之间）
-                            valid_dates = dates[(dates >= pd.Timestamp('1900-01-01')) & (dates <= pd.Timestamp('2100-01-01'))]
-                            if not valid_dates.empty:
-                                earliest_date = valid_dates.min()
-                                break
-                    except:
-                        continue
-            
-            # 如果仍然找不到日期，跳过该股票
-            if earliest_date is None:
-                new_stock_count += 1
-                if new_stock_count <= 10:
-                    print(f"  过滤新股（无法解析日期）: {stock_code} {stock_name}")
-                continue
-            
-            # 确保earliest_date是datetime类型（如果不是，转换为datetime）
-            if isinstance(earliest_date, pd.Timestamp):
-                earliest_date = earliest_date.to_pydatetime()
-            elif not isinstance(earliest_date, datetime):
-                earliest_date = pd.to_datetime(earliest_date).to_pydatetime()
-            
-            # 如果最早日期早于1个月前，则保留
-            if earliest_date <= one_month_ago:
+            is_valid, earliest_date, reason = filter_new_stock(
+                stock_code=stock_code,
+                stock_name=stock_name,
+                cutoff_date=one_year_ago,
+                start_date=start_date,
+                end_date=end_date
+            )
+
+            if is_valid:
                 valid_stocks.append({
                     'code': stock_code,
                     'name': stock_name,
                     'earliest_date': earliest_date.strftime('%Y-%m-%d')
                 })
             else:
-                # 最早日期在1个月内，认为是新股，过滤掉
                 new_stock_count += 1
-                if new_stock_count <= 10:  # 只显示前10只被过滤的新股
-                    print(f"  过滤新股: {stock_code} {stock_name} 最早数据日期: {earliest_date.strftime('%Y-%m-%d')}")
-            
-            # 添加小延迟避免请求过快
+
+                if reason and reason.startswith('error:'):
+                    failed_count += 1
+                    error_message = reason.split('error:', 1)[1]
+                    if failed_count <= 10:
+                        print(f"  警告: {stock_code} {stock_name} 获取历史数据失败: {error_message}")
+                else:
+                    if new_stock_count <= 10:
+                        if reason == 'no_data':
+                            print(f"  过滤新股（无历史数据）: {stock_code} {stock_name}")
+                        elif reason == 'no_date':
+                            print(f"  过滤新股（无法解析日期）: {stock_code} {stock_name}")
+                        elif reason == 'too_new' and earliest_date is not None:
+                            print(f"  过滤新股: {stock_code} {stock_name} 最早数据日期: {earliest_date.strftime('%Y-%m-%d')}")
+
             time.sleep(0.05)
-            
+
         except Exception as e:
             failed_count += 1
             # 如果获取失败，可能是新股或数据问题，过滤掉（保守策略）
@@ -174,7 +263,7 @@ def get_all_stocks():
         f.write("# 股票列表文件\n")
         f.write("# 格式：股票代码,股票名称\n")
         f.write("# 支持注释行（以#开头）\n")
-        f.write("# 已过滤ST股票和上市时间少于1个月的新股\n")
+        f.write("# 已过滤ST股票和上市时间少于1年的新股\n")
         f.write("\n")
         
         for _, row in stock_info_filtered.iterrows():
@@ -212,10 +301,72 @@ def get_hot_sectors():
         print(f"获取热门板块数据时出错：{str(e)}")
         return None
 
+
+def get_hot_sectors_ths(top_n: int = 10, save_path: str = 'hot_sectors_ths.csv'):
+    """
+    使用同花顺概念接口获取热门板块（概念）列表
+
+    :param top_n: 需要展示和保存的热门板块数量
+    :param save_path: 保存数据的 CSV 文件名
+    :return: pandas.DataFrame or None
+    """
+    try:
+        print("\n正在通过同花顺接口获取热门概念板块...")
+        concept_df = ak.stock_board_concept_name_ths()
+
+        if concept_df is None or concept_df.empty:
+            print("未能获取到任何概念板块数据，请稍后重试或检查网络。")
+            return None
+
+        # 复制一份，避免 SettingWithCopyWarning
+        concept_df = concept_df.copy()
+
+        # 同花顺接口常见列名映射，便于统一展示
+        rename_map = {
+            '概念名称': '板块名称',
+            '指数代码': '板块代码',
+            '代码': '板块代码',
+            '最新价': '当前价',
+            '涨跌幅': '涨跌幅',
+            '涨跌额': '涨跌额',
+            '换手率': '换手率',
+            '总市值': '总市值',
+            '领涨股票': '领涨股票',
+            '领涨股票-涨跌幅': '领涨涨跌幅'
+        }
+        for src, dst in rename_map.items():
+            if src in concept_df.columns and dst not in concept_df.columns:
+                concept_df.rename(columns={src: dst}, inplace=True)
+
+        top_n = max(1, top_n)
+        top_concepts = concept_df.head(top_n)
+
+        display_cols = [col for col in ['板块名称', '板块代码', '当前价', '涨跌幅', '领涨股票', '领涨涨跌幅']
+                        if col in top_concepts.columns]
+
+        print(f"\n同花顺热门概念前{len(top_concepts)}名：")
+        if display_cols:
+            print(top_concepts[display_cols].to_string(index=False))
+        else:
+            print(top_concepts.head(top_n))
+
+        top_concepts.to_csv(save_path, index=False, encoding='utf-8-sig')
+        print(f"\n同花顺热门概念板块信息已保存到 {save_path}")
+
+        return top_concepts
+    except Exception as e:
+        print(f"使用同花顺接口获取热门板块数据时出错：{e}")
+        print("常见问题：同花顺可能需要验证码或限流，建议稍后重试。")
+        return None
+
 def get_top_stocks_by_sectors():
     """
     获取前10个热门板块中每个板块的前10个股票（只取沪深A股，排除B股和ST股票）
     """
+    cutoff_date = datetime.now() - timedelta(days=365)
+    history_start = (datetime.now() - timedelta(days=400)).strftime('%Y%m%d')
+    history_end = datetime.now().strftime('%Y%m%d')
+
     try:
         # 获取热门板块数据
         hot_sectors = ak.stock_board_concept_name_em()
@@ -260,13 +411,18 @@ def get_top_stocks_by_sectors():
                 if sector_stocks.empty:
                     print(f"板块 '{sector_name}' 过滤后没有符合条件的股票，跳过")
                     continue
-                
-                # 取前10个股票
-                top_10_stocks = sector_stocks.head(10)
-                
-                # 添加板块信息
-                top_10_stocks['板块名称'] = sector_name
-                top_10_stocks['板块代码'] = sector_code
+
+                top_10_stocks = prepare_sector_top_stocks(
+                    sector_stocks=sector_stocks,
+                    sector_name=sector_name,
+                    sector_code=sector_code,
+                    cutoff_date=cutoff_date,
+                    start_date=history_start,
+                    end_date=history_end
+                )
+
+                if top_10_stocks is None:
+                    continue
                 
                 all_sector_stocks.append(top_10_stocks)
                 
@@ -294,14 +450,16 @@ def get_top_stocks_by_sectors():
                         # 排除ST股票（股票名称包含ST或退）
                         sector_stocks = sector_stocks[~sector_stocks['名称'].str.contains('ST|退', na=False)]
                         
-                        if not sector_stocks.empty:
-                            # 取前10个股票
-                            top_10_stocks = sector_stocks.head(10)
-                            
-                            # 添加板块信息
-                            top_10_stocks['板块名称'] = sector_name
-                            top_10_stocks['板块代码'] = sector_code
-                            
+                        top_10_stocks = prepare_sector_top_stocks(
+                            sector_stocks=sector_stocks,
+                            sector_name=sector_name,
+                            sector_code=sector_code,
+                            cutoff_date=cutoff_date,
+                            start_date=history_start,
+                            end_date=history_end
+                        )
+
+                        if top_10_stocks is not None:
                             all_sector_stocks.append(top_10_stocks)
                             
                             print(f"板块 '{sector_name}' 前10只股票（备用方法）：")
@@ -315,6 +473,7 @@ def get_top_stocks_by_sectors():
                     print(f"板块 '{sector_name}' 备用方法也失败：{str(e2)}")
                 
                 continue
+            
         
         if all_sector_stocks:
             # 合并所有板块的股票数据
@@ -358,7 +517,4 @@ def get_top_stocks_by_sectors():
         return None
 
 if __name__ == "__main__":
-    get_all_stocks()
-    # read_stocks()
-    # get_hot_sectors()
-    # get_top_stocks_by_sectors() 
+    get_top_stocks_by_sectors() 

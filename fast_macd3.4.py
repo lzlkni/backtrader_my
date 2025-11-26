@@ -323,7 +323,7 @@ def main():
     parser = argparse.ArgumentParser(description='股票回测系统')
     parser.add_argument('--stocks_file', '-f', type=str, default='',
                        help='股票列表文件路径 (默认: stocks.csv)')
-    parser.add_argument('--start_date', '-s', type=str, default='20220101',
+    parser.add_argument('--start_date', '-s', type=str, default='20240101',
                        help='回测开始日期 (格式: YYYYMMDD, 默认: 20220101)')
     parser.add_argument('--end_date', '-e', type=str, default=datetime.today().strftime('%Y%m%d'),
                        help='回测结束日期 (格式: YYYYMMDD, 默认: 今天)')
@@ -342,32 +342,32 @@ def main():
     if not stocks_map:
         print("使用默认股票列表")
         stocks_map = {
-            'sz001221': '悍高集团'
-            # 'sz000592': '平潭发展',
-            # 'sz300568': '星源材质', 
-            # 'sz002460': '赣锋锂业', 
-            # 'sz000858': '五粮液', 
-            # 'sz000333': '美的', 
-            # 'sh603259': '药明',
-            # 'sz300638': '广和', 
-            # 'sz002881': '美格', 
-            # 'sh603118': '共进',
-            # 'sh600507': '方大特钢',
-            # 'sh601088': '中国神华',
-            # 'sz300654': '世纪天鸿',
-            # 'sh603011': '合锻智能',
-            # 'sh688095': '福昕软件',        
-            # 'sh600895': '张江高科',
-            # 'sh600119': '长江投资',
-            # 'sz301308': '江波龙',
-            # 'sh688425': '铁建重工'
+            'sz300568': '星源材质', 
+            'sz002460': '赣锋锂业', 
+            'sz000858': '五粮液', 
+            'sz000333': '美的', 
+            'sh603259': '药明',
+            'sz300638': '广和', 
+            'sz002881': '美格', 
+            'sh603118': '共进',
+            'sh600507': '方大特钢',
+            'sh601088': '中国神华',
+            'sz300654': '世纪天鸿',
+            'sh603011': '合锻智能',
+            'sh688095': '福昕软件',        
+            'sh600895': '张江高科',
+            'sh600119': '长江投资',
+            'sz301308': '江波龙',
+            'sh688425': '铁建重工'
         }
+        # stocks_map = {
+        #     'sz300654': '世纪天鸿'}
         
 
     for stock_code in stocks_map.keys():
         
         stock_name = stocks_map[stock_code]
-        # stock_hfq_df = ak.stock_zh_a_hist(symbol=stock, adjust="qfq", start_date=start_date, end_date=end_date).iloc[:, :6]  # 利用 AkShare 一行获取复权数据
+        # stock_hfq_df = ak.stock_zh_a_hist(symbol=stock_code, adjust="qfq", start_date=start_date, end_date=end_date).iloc[:, :6]  # 利用 AkShare 一行获取复权数据
         
         stock_hfq_df = ak.stock_zh_a_daily(symbol=stock_code, adjust="qfq", start_date=start_date, end_date=end_date).iloc[:, :6]
         if len(stock_hfq_df) < 30:
