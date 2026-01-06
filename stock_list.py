@@ -317,47 +317,79 @@ def get_hot_sectors_ths(top_n: int = 10, save_path: str = 'hot_sectors_ths.csv')
         if concept_df is None or concept_df.empty:
             print("未能获取到任何概念板块数据，请稍后重试或检查网络。")
             return None
-
-        # 复制一份，避免 SettingWithCopyWarning
-        concept_df = concept_df.copy()
-
-        # 同花顺接口常见列名映射，便于统一展示
-        rename_map = {
-            '概念名称': '板块名称',
-            '指数代码': '板块代码',
-            '代码': '板块代码',
-            '最新价': '当前价',
-            '涨跌幅': '涨跌幅',
-            '涨跌额': '涨跌额',
-            '换手率': '换手率',
-            '总市值': '总市值',
-            '领涨股票': '领涨股票',
-            '领涨股票-涨跌幅': '领涨涨跌幅'
-        }
-        for src, dst in rename_map.items():
-            if src in concept_df.columns and dst not in concept_df.columns:
-                concept_df.rename(columns={src: dst}, inplace=True)
-
-        top_n = max(1, top_n)
-        top_concepts = concept_df.head(top_n)
-
-        display_cols = [col for col in ['板块名称', '板块代码', '当前价', '涨跌幅', '领涨股票', '领涨涨跌幅']
-                        if col in top_concepts.columns]
-
-        print(f"\n同花顺热门概念前{len(top_concepts)}名：")
-        if display_cols:
-            print(top_concepts[display_cols].to_string(index=False))
         else:
-            print(top_concepts.head(top_n))
-
-        top_concepts.to_csv(save_path, index=False, encoding='utf-8-sig')
-        print(f"\n同花顺热门概念板块信息已保存到 {save_path}")
-
-        return top_concepts
+            return concept_df
+      
     except Exception as e:
         print(f"使用同花顺接口获取热门板块数据时出错：{e}")
         print("常见问题：同花顺可能需要验证码或限流，建议稍后重试。")
         return None
+
+
+def get_top_concept_returns_from_ths(top_n: int = 10):
+    """
+    基于 get_hot_sectors_ths 返回的板块，获取各板块开盘价、收盘价并计算涨跌幅，返回涨幅前 top_n 的板块
+    """
+    concept_df = get_hot_sectors_ths()
+    if concept_df is None or concept_df.empty:
+        print("未能获取到热门概念板块，无法计算涨幅。")
+        return None
+
+    records = []
+    for _, row in concept_df.iterrows():
+        symbol = row["name"]
+        sector_name = row["code"]
+        print(f"正在获取板块 {sector_name}({symbol} 指数")
+
+        try:
+            idx_df = ak.stock_board_concept_index_ths(symbol=symbol)
+        except Exception as exc:
+            print(f"获取板块 {sector_name}({symbol}) 指数失败: {exc}")
+            continue
+
+        if idx_df is None or idx_df.empty:
+            print(f"板块 {sector_name}({symbol}) 指数数据为空，跳过。")
+            continue
+
+        open_candidates = ['开盘', '开盘价', '今开', 'open', 'open_price']
+        close_candidates = ['收盘', '收盘价', '最新价', 'close', 'close_price']
+
+        open_col = next((col for col in open_candidates if col in idx_df.columns), None)
+        close_col = next((col for col in close_candidates if col in idx_df.columns), None)
+
+        if open_col is None or close_col is None:
+            print(f"板块 {sector_name}({symbol}) 缺少开盘/收盘列，现有列：{idx_df.columns}")
+            continue
+
+        latest = idx_df.iloc[-1]
+        open_price = pd.to_numeric(latest[open_col], errors='coerce')
+        close_price = pd.to_numeric(latest[close_col], errors='coerce')
+
+        if pd.isna(open_price) or pd.isna(close_price) or open_price == 0:
+            print(f"板块 {sector_name}({symbol}) 数据异常：open={open_price}, close={close_price}")
+            continue
+
+        change_pct = (close_price - open_price) / open_price * 100
+        records.append({
+            '板块名称': sector_name,
+            '板块代码': symbol,
+            '开盘价': open_price,
+            '收盘价': close_price,
+            '涨跌幅(%)': round(change_pct, 2)
+        })
+
+        # 降低接口压力
+        time.sleep(3)
+
+    if not records:
+        print("未计算出任何板块的涨跌幅。")
+        return None
+
+    result_df = pd.DataFrame(records)
+    top_df = result_df.sort_values('涨跌幅(%)', ascending=False).head(top_n)
+    print(f"\n涨幅前 {top_n} 的板块：")
+    print(top_df[['板块名称', '板块代码', '涨跌幅(%)']].to_string(index=False))
+    return top_df
 
 def get_top_stocks_by_sectors():
     """
@@ -369,6 +401,8 @@ def get_top_stocks_by_sectors():
 
     try:
         # 获取热门板块数据
+        # 东方财富-概念板块
+        print("正在获取热门板块数据...")
         hot_sectors = ak.stock_board_concept_name_em()
         
         # 取前10个热门板块
@@ -380,6 +414,7 @@ def get_top_stocks_by_sectors():
         all_sector_stocks = []
         
         for index, sector in top_10_sectors.iterrows():
+            time.sleep(10)
             sector_name = sector['板块名称']
             sector_code = sector['板块代码']
             
@@ -431,47 +466,6 @@ def get_top_stocks_by_sectors():
                 
             except Exception as e:                
                 print(f"获取板块 '{sector_name}' 股票时出错：{str(e)}")
-                print(f"尝试使用备用方法获取板块股票...")
-                
-                try:
-                    # 备用方法：尝试使用板块名称而不是代码
-                    sector_stocks = ak.stock_board_industry_cons_em(symbol=sector_name)
-                    
-                    if not sector_stocks.empty:
-                        print(f"备用方法成功获取到 {len(sector_stocks)} 只股票")
-                        
-                        # 过滤只保留沪深A股（排除北交所股票，北交所股票代码以8开头）
-                        sector_stocks = sector_stocks[~sector_stocks['代码'].str.startswith('8')]
-                        
-                        # 排除B股（B股代码以2开头）
-                        sector_stocks = sector_stocks[~sector_stocks['代码'].str.startswith('2')]
-                        sector_stocks = sector_stocks[~sector_stocks['代码'].str.startswith('9')]
-                        
-                        # 排除ST股票（股票名称包含ST或退）
-                        sector_stocks = sector_stocks[~sector_stocks['名称'].str.contains('ST|退', na=False)]
-                        
-                        top_10_stocks = prepare_sector_top_stocks(
-                            sector_stocks=sector_stocks,
-                            sector_name=sector_name,
-                            sector_code=sector_code,
-                            cutoff_date=cutoff_date,
-                            start_date=history_start,
-                            end_date=history_end
-                        )
-
-                        if top_10_stocks is not None:
-                            all_sector_stocks.append(top_10_stocks)
-                            
-                            print(f"板块 '{sector_name}' 前10只股票（备用方法）：")
-                            print(top_10_stocks[['代码', '名称', '最新价', '涨跌幅']].to_string(index=False))
-                        else:
-                            print(f"板块 '{sector_name}' 备用方法过滤后没有符合条件的股票")
-                    else:
-                        print(f"板块 '{sector_name}' 备用方法也没有获取到数据")
-                        
-                except Exception as e2:
-                    print(f"板块 '{sector_name}' 备用方法也失败：{str(e2)}")
-                
                 continue
             
         
@@ -518,3 +512,4 @@ def get_top_stocks_by_sectors():
 
 if __name__ == "__main__":
     get_top_stocks_by_sectors() 
+    # get_top_concept_returns_from_ths()

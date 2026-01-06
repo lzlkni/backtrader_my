@@ -167,8 +167,8 @@ class fast_macd_strtgy(bt.Strategy):
 
             if self.data_close[0] >= self.out_point_up or self.data_close[0] <= self.out_point_down:  
             # if self.data_high[0] >= self.out_point_up or self.data_high[0] <= self.out_point_down:
-                self.log(f"{self.datas[0].datetime.date(0)} Sell tomorrow!")
-                self.email_notify(f"{self.datas[0].datetime.date(0)} Sell tomorrow!")
+                self.log(f"Sell tomorrow!")
+                self.email_notify(f"Sell tomorrow!")
                 self.order = self.close()  # 执行卖出
 
     def notify_order(self, order):
@@ -203,7 +203,7 @@ class fast_macd_strtgy(bt.Strategy):
 
     # If execute is today, send email
     def email_notify(self, txt):
-        if self.datas[0].datetime.date(0) == date.today():
+        if self.datas[0].datetime.date(0) == date.today() or self.datas[0].datetime.date(0) == (date.today() - timedelta(days=1)):
         # if str(self.datas[0].datetime.date(0)) == "2023-01-04":
             self.log("sending email")
 
@@ -341,8 +341,18 @@ def main():
     # 如果没有指定文件或文件为空，使用默认股票列表
     if not stocks_map:
         print("使用默认股票列表")
+
         stocks_map = {
-            'sz300568': '星源材质', 
+            'sz301209': '联合化学',
+            'sh688143': '长盈通',
+            'sz300255': '常山药业',
+            'sz002364': '中恒电气',
+            'sz300607': '拓斯达',
+            'sz002131': '利欧股份',
+            'sh688521': '芯原股份',
+            'sh600580': '卧龙电驱',
+            'sz301377': '鼎泰高科',
+            'sz002779': '中坚科技', 
             'sz002460': '赣锋锂业', 
             'sz000858': '五粮液', 
             'sz000333': '美的', 
@@ -357,11 +367,21 @@ def main():
             'sh688095': '福昕软件',        
             'sh600895': '张江高科',
             'sh600119': '长江投资',
-            'sz301308': '江波龙',
-            'sh688425': '铁建重工'
+            'sz301308': '江波龙',            
+            'sz002466': '天齐锂业',            
+            'sh688168': '安博通',
+            'sh688195': '腾景科技',
+            'sh600580': '卧龙电驱',
+            'sz002413': '雷科防务',
+            'sz002813': '路畅科技',
+            'sz300007': '汉威科技',
+            'sz300502': '新易盛',
+            'sz000962': '东方钽业',
+            'sh600577': '精达股份'
         }
         # stocks_map = {
-        #     'sz300654': '世纪天鸿'}
+        #      'sz301377': '鼎泰高科'
+        # }
         
 
     for stock_code in stocks_map.keys():
