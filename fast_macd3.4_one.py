@@ -147,7 +147,7 @@ class fast_macd_strtgy(bt.Strategy):
                 #     self.email_notify(msg)
                 #     return
                 
-                msg = f"Buy tomorrow! Current Price: {current_price:.2f}, Est. Target: {estimated_out_point_up:.2f}, Est. Stop: {estimated_out_point_down:.2f}, Est. Return: {estimated_return:.2f}%, Est. Stop Loss: {estimated_stop_loss:.2f}%, Cat: {cat}"
+                msg = f"Buy tomorrow! Current Price: {current_price:.2f} {self.data_high[0]} {self.data_low[0]}, Est. Target: {estimated_out_point_up:.2f}, Est. Stop: {estimated_out_point_down:.2f}, Est. Return: {estimated_return:.2f}%, Est. Stop Loss: {estimated_stop_loss:.2f}%, Cat: {cat}"
                 
                 self.log(msg)
                 self.email_notify(msg)
@@ -167,8 +167,8 @@ class fast_macd_strtgy(bt.Strategy):
 
             if self.data_close[0] >= self.out_point_up or self.data_close[0] <= self.out_point_down:  
             # if self.data_high[0] >= self.out_point_up or self.data_high[0] <= self.out_point_down:
-                self.log(f"Sell tomorrow!")
-                self.email_notify(f"Sell tomorrow!")
+                self.log(f"{self.datas[0].datetime.date(0)} Sell tomorrow!")
+                self.email_notify(f"{self.datas[0].datetime.date(0)} Sell tomorrow!")
                 self.order = self.close()  # 执行卖出
 
     def notify_order(self, order):
@@ -212,7 +212,7 @@ class fast_macd_strtgy(bt.Strategy):
             user_list = ['lzl_kni@qq.com']
             sub = "fmacd_execut"
             content = f"{dt.isoformat()} {self.stock_code} {self.stock_name} {txt}"
-            send.send_mail(user_list, sub, content)
+            # send.send_mail(user_list, sub, content)
 
     def calculate_stop_loss_target(self, current_price):
         """
@@ -342,46 +342,46 @@ def main():
     if not stocks_map:
         print("使用默认股票列表")
 
-        stocks_map = {
-            'sz301209': '联合化学',
-            'sh688143': '长盈通',
-            'sz300255': '常山药业',
-            'sz002364': '中恒电气',
-            'sz300607': '拓斯达',
-            'sz002131': '利欧股份',
-            'sh688521': '芯原股份',
-            'sh600580': '卧龙电驱',
-            'sz301377': '鼎泰高科',
-            'sz002779': '中坚科技', 
-            'sz002460': '赣锋锂业', 
-            'sz000858': '五粮液', 
-            'sz000333': '美的', 
-            'sh603259': '药明',
-            'sz300638': '广和', 
-            'sz002881': '美格', 
-            'sh603118': '共进',
-            'sh600507': '方大特钢',
-            'sh601088': '中国神华',
-            'sz300654': '世纪天鸿',
-            'sh603011': '合锻智能',
-            'sh688095': '福昕软件',        
-            'sh600895': '张江高科',
-            'sh600119': '长江投资',
-            'sz301308': '江波龙',            
-            'sz002466': '天齐锂业',            
-            'sh688168': '安博通',
-            'sh688195': '腾景科技',
-            'sh600580': '卧龙电驱',
-            'sz002413': '雷科防务',
-            'sz002813': '路畅科技',
-            'sz300007': '汉威科技',
-            'sz300502': '新易盛',
-            'sz000962': '东方钽业',
-            'sh600577': '精达股份'
-        }
         # stocks_map = {
-        #      'sz301377': '鼎泰高科'
+        #     'sz301209': '联合化学',
+        #     'sh688143': '长盈通',
+        #     'sz300255': '常山药业',
+        #     'sz002364': '中恒电气',
+        #     'sz300607': '拓斯达',
+        #     'sz002131': '利欧股份',
+        #     'sh688521': '芯原股份',
+        #     'sh600580': '卧龙电驱',
+        #     'sz301377': '鼎泰高科',
+        #     'sz002779': '中坚科技', 
+        #     'sz002460': '赣锋锂业', 
+        #     'sz000858': '五粮液', 
+        #     'sz000333': '美的', 
+        #     'sh603259': '药明',
+        #     'sz300638': '广和', 
+        #     'sz002881': '美格', 
+        #     'sh603118': '共进',
+        #     'sh600507': '方大特钢',
+        #     'sh601088': '中国神华',
+        #     'sz300654': '世纪天鸿',
+        #     'sh603011': '合锻智能',
+        #     'sh688095': '福昕软件',        
+        #     'sh600895': '张江高科',
+        #     'sh600119': '长江投资',
+        #     'sz301308': '江波龙',            
+        #     'sz002466': '天齐锂业',            
+        #     'sh688168': '安博通',
+        #     'sh688195': '腾景科技',
+        #     'sh600580': '卧龙电驱',
+        #     'sz002413': '雷科防务',
+        #     'sz002813': '路畅科技',
+        #     'sz300007': '汉威科技',
+        #     'sz300502': '新易盛',
+        #     'sz000962': '东方钽业',
+        #     'sh600577': '精达股份'
         # }
+        stocks_map = {                
+                'sh603118': '共进'                
+        }
         
 
     for stock_code in stocks_map.keys():
@@ -403,6 +403,7 @@ def main():
         ]
 
         stock_hfq_df.index = pd.to_datetime(stock_hfq_df['date'])
+        print(stock_hfq_df)
 
         cerebro = bt.Cerebro()  # 初始化回测系统
         data = bt.feeds.PandasData(dataname=stock_hfq_df)  # 加载数据
