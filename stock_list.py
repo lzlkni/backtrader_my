@@ -335,11 +335,11 @@ def get_top_concept_returns_from_ths(top_n: int = 10):
         print("未能获取到热门概念板块，无法计算涨幅。")
         return None
 
-    records = []
-    for _, row in concept_df.iterrows():
+    result_df = pd.DataFrame()  # 新增结果DataFrame
+    for _, row in concept_df.head(2).iterrows():
         symbol = row["name"]
         sector_name = row["code"]
-        print(f"正在获取板块 {sector_name}({symbol} 指数")
+        print(f"正在获取板块 {sector_name}({symbol}) 指数")
 
         try:
             idx_df = ak.stock_board_concept_index_ths(symbol=symbol)
@@ -361,32 +361,28 @@ def get_top_concept_returns_from_ths(top_n: int = 10):
             print(f"板块 {sector_name}({symbol}) 缺少开盘/收盘列，现有列：{idx_df.columns}")
             continue
 
-        latest = idx_df.iloc[-1]
+        latest = idx_df.iloc[-1].copy()
         open_price = pd.to_numeric(latest[open_col], errors='coerce')
         close_price = pd.to_numeric(latest[close_col], errors='coerce')
 
         if pd.isna(open_price) or pd.isna(close_price) or open_price == 0:
             print(f"板块 {sector_name}({symbol}) 数据异常：open={open_price}, close={close_price}")
             continue
+        # 计算涨跌幅
+        latest['涨跌幅(%)'] = (close_price - open_price) / open_price * 100
+        latest['板块名称'] = symbol
+        latest['板块代码'] = sector_name
 
-        change_pct = (close_price - open_price) / open_price * 100
-        records.append({
-            '板块名称': sector_name,
-            '板块代码': symbol,
-            '开盘价': open_price,
-            '收盘价': close_price,
-            '涨跌幅(%)': round(change_pct, 2)
-        })
+        # 将latest追加到result_df
+        result_df = pd.concat([result_df, latest.to_frame().T], ignore_index=True)
 
-        # 降低接口压力
         time.sleep(3)
 
-    if not records:
+    if result_df.empty:
         print("未计算出任何板块的涨跌幅。")
         return None
 
-    result_df = pd.DataFrame(records)
-    top_df = result_df.sort_values('涨跌幅(%)', ascending=False).head(top_n)
+    top_df = result_df.sort_values(['成交额', '涨跌幅(%)'], ascending=[False, False]).head(top_n)
     print(f"\n涨幅前 {top_n} 的板块：")
     print(top_df[['板块名称', '板块代码', '涨跌幅(%)']].to_string(index=False))
     return top_df
@@ -414,7 +410,7 @@ def get_top_stocks_by_sectors():
         all_sector_stocks = []
         
         for index, sector in top_10_sectors.iterrows():
-            time.sleep(10)
+            time.sleep(30)
             sector_name = sector['板块名称']
             sector_code = sector['板块代码']
             
@@ -511,5 +507,6 @@ def get_top_stocks_by_sectors():
         return None
 
 if __name__ == "__main__":
-    get_top_stocks_by_sectors() 
-    # get_top_concept_returns_from_ths()
+    # get_top_stocks_by_sectors() 
+    top_concept_df = get_top_concept_returns_from_ths()
+    print(top_concept_df.head(10))
