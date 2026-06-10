@@ -4,7 +4,8 @@
 from datetime import datetime, timedelta
 import time
 import argparse
-import os
+import os, sys
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), 'common'))
 
 import backtrader as bt
 # import matplotlib.pyplot as plt
@@ -323,7 +324,7 @@ def main():
     parser = argparse.ArgumentParser(description='股票回测系统')
     parser.add_argument('--stocks_file', '-f', type=str, default='',
                        help='股票列表文件路径 (默认: stocks.csv)')
-    parser.add_argument('--start_date', '-s', type=str, default='20240101',
+    parser.add_argument('--start_date', '-s', type=str, default='20220101',
                        help='回测开始日期 (格式: YYYYMMDD, 默认: 20220101)')
     parser.add_argument('--end_date', '-e', type=str, default=datetime.today().strftime('%Y%m%d'),
                        help='回测结束日期 (格式: YYYYMMDD, 默认: 今天)')
@@ -379,10 +380,10 @@ def main():
         #     'sz000962': '东方钽业',
         #     'sh600577': '精达股份'
         # }
-        stocks_map = {                
-                'sh603118': '共进'                
-        }
         
+        stocks_map = {
+            'sz002466': '天齐锂业',  
+        }
 
     for stock_code in stocks_map.keys():
         
@@ -403,8 +404,7 @@ def main():
         ]
 
         stock_hfq_df.index = pd.to_datetime(stock_hfq_df['date'])
-        print(stock_hfq_df)
-
+        
         cerebro = bt.Cerebro()  # 初始化回测系统
         data = bt.feeds.PandasData(dataname=stock_hfq_df)  # 加载数据
 

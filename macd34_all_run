@@ -1,0 +1,1 @@
+0 9 * * 6 root /usr/local/bin/python /app/fast_macd3.4.py -f /etc/cron.d/stocks.csv >> /var/log/fast_macd3.4_all_stock.log 2>&1

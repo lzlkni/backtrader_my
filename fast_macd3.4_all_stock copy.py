@@ -1,7 +1,5 @@
 from datetime import datetime, timedelta
 import time
-import os
-import sys
 
 import backtrader as bt
 # import matplotlib.pyplot as plt
@@ -10,6 +8,8 @@ import pandas as pd
 
 from backtrader.indicators import EMA, Lowest
 
+import os, sys
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), 'common'))
 import send_email
 from PrintAnalyzer import *
 from datetime import date
@@ -73,7 +73,6 @@ class FastMACD(bt.Indicator):
         # Signal
         signal1 = EMA(self.l.macd, period=self.p.period_signal)
         signal2 = EMA(signal1, period=self.p.period_signal)
-        self.l.signal = signal1 * 2 - signal2
         self.l.signal = signal1 * 2 - signal2
 
         self.l.histo = self.l.macd - self.l.signal
@@ -207,13 +206,9 @@ class fast_macd_strtgy(bt.Strategy):
 
     # If execute is today, send email
     def email_notify(self, txt):
-        if self.datas[0].datetime.date(0) == date.today() or self.datas[0].datetime.date(0) == (date.today() - timedelta(days=1)):
+        if self.datas[0].datetime.date(0) == date.today():
         # if str(self.datas[0].datetime.date(0)) == "2023-01-04":
             self.log("sending email")
-
-            # log has signal today
-            global signal
-            signal = True
 
             dt = self.datas[0].datetime.date(0)
             send = send_email.SendEmail()
@@ -241,31 +236,14 @@ start_date = datetime(2024, 1, 1).strftime('%Y%m%d')  # 回测开始时间
 # end_date = datetime(2022, 12, 16)  # 回测结束时间
 end_date = datetime.today().strftime('%Y%m%d')
 
-# 结果CSV配置
-today_str = datetime.today().strftime("%Y%m%d")
-results_csv = f'all_stock_hk_analysis_results_raw_{today_str}.csv'
-sig_filename = f'filtered_stocks_signal_{today_str}.csv'
-processed_stocks = set()
-if os.path.exists(results_csv):
-    try:
-        existing_results = pd.read_csv(results_csv, dtype={'股票代码': str})
-        processed_stocks = set(existing_results['股票代码'].astype(str))
-        print(f"已读取历史结果，共 {len(processed_stocks)} 只股票。")
-    except Exception as e:
-        print(f"读取历史结果失败: {e}")
-        processed_stocks = set()
-
-success_count = 0
-skip_count = 0
-fail_count = 0
-sig_success_count = 0
+# 创建结果存储列表
+analysis_results = []
 
 # 300568 星源材质
 # 002460 赣锋锂业
 # 从CSV文件读取股票代码与名称（文件无表头，含注释行）
-stocks_file = sys.argv[1] if len(sys.argv) > 1 else 'stocks_all.csv'
 stocks_df = pd.read_csv(
-    stocks_file,
+    'stocks_all.csv',
     header=None,
     names=['code', 'name'],
     comment='#',
@@ -277,35 +255,23 @@ stocks_map = dict(zip(stocks_df['code'], stocks_df['name']))
 
 global stock
 global stock_name
-global signal
-
-signal = False
 
 for stock in stocks_map.keys():
-    if stock in processed_stocks:
-        print(f"{stock} {stocks_map.get(stock)} 已有回测结果，跳过。")
-        skip_count += 1
-        continue
-
-    # 每只股票开始前重置当日信号标记
-    signal = False
-
     print(stocks_map.get(stock))
     stock_name = stocks_map[stock]
     stock_hfq_df = ak.stock_zh_a_daily(symbol=stock, adjust="qfq", start_date=start_date, end_date=end_date).iloc[:, :6]  # 利用 AkShare 获取A股复权数据
     if len(stock_hfq_df) < 30:
-        print(f"{stock} {stock_name} 行数少于30，跳过。")
-        fail_count += 1
+        print(f"{stock_code} {stock_name} 行数少于30，跳过。")
         continue    
 
 
     stock_hfq_df.columns = [
-            'date',
-            'open',
-            'high',
-            'low',
-            'close',
-            'volume',
+        'date',
+        'open',
+        'close',
+        'high',
+        'low',
+        'volume',
     ]
     pd.set_option('display.max_rows', None)
     pd.set_option('display.max_columns', None)
@@ -357,8 +323,6 @@ for stock in stocks_map.keys():
         sharpe_analysis = result[0].analyzers.sharpe.get_analysis()
         if sharpe_analysis is not None:
             sharpe_ratio = sharpe_analysis.get('sharperatio', 0)
-            if sharpe_ratio is None:
-                sharpe_ratio = 0
         else:
             sharpe_ratio = 0
     except:
@@ -370,13 +334,6 @@ for stock in stocks_map.keys():
             max_drawdown = drawdown_analysis.get('max', {}).get('drawdown', 0)
             max_moneydown = drawdown_analysis.get('max', {}).get('moneydown', 0)
             max_drawdown_len = drawdown_analysis.get('max', {}).get('len', 0)
-            # 确保值不为None
-            if max_drawdown is None:
-                max_drawdown = 0
-            if max_moneydown is None:
-                max_moneydown = 0
-            if max_drawdown_len is None:
-                max_drawdown_len = 0
             # 确保回撤值为正数（DrawDown返回的是负值）
             if max_drawdown < 0:
                 max_drawdown = abs(max_drawdown)
@@ -413,32 +370,8 @@ for stock in stocks_map.keys():
         '最大回撤持续天数': max_drawdown_len,
         '交易次数': total_trades
     }
+    analysis_results.append(analysis_result)
     
-    # 逐条写入CSV
-   
-    try:
-        result_df = pd.DataFrame([analysis_result])
-        write_header = not os.path.exists(results_csv) or os.path.getsize(results_csv) == 0
-        result_df.to_csv(results_csv, mode='a', header=write_header, index=False, encoding='utf-8-sig')
-        processed_stocks.add(stock)
-        success_count += 1
-
-        # 如果 signal 为 True，将结果写入另一个CSV文件并计数
-        if signal:
-            # 将 result_df 写入文件，文件名 filtered_stocks_signal_YYYYMMDD.csv，追加模式，根据文件是否存在决定是否写表头
-            result_df.to_csv(
-                sig_filename,
-                mode='a',
-                header=not os.path.exists(sig_filename) or os.path.getsize(sig_filename) == 0,
-                index=False,
-                encoding='utf-8-sig'
-            )
-            sig_success_count += len(result_df)
-
-    except Exception as e:
-        print(f"写入结果失败: {e}")
-        fail_count += 1
-
     # print('Sharp:', result[0].analyzers.SharpeRatio.get_analysis()['sharperatio'] )
     # print('DrawDown: ', result[0].analyzers.DrawDown.get_analysis()['max']['drawdown'])
     # ret = result[0].analyzers.AnnualReturn.get_analysis()
@@ -453,73 +386,66 @@ for stock in stocks_map.keys():
     time.sleep(10)
 
 # 打印最终统计
-attempt_count = len(stocks_map) - skip_count
-success_rate = (success_count / attempt_count * 100) if attempt_count else 0
 print(f"\n=== 分析完成 ===")
 print(f"总股票数: {len(stocks_map)}")
-print(f"本次跳过（已有结果）: {skip_count}")
-print(f"本次尝试: {attempt_count}")
-print(f"成功分析: {success_count}")
-print(f"分析失败: {fail_count}")
-print(f"成功率: {success_rate:.1f}%")
-print(f"触发买入信号并写入 {sig_filename} 的股票数: {sig_success_count}")
+print(f"成功分析: {len(analysis_results)}")
+print(f"分析失败: {len(stocks_map) - len(analysis_results)}")
+print(f"成功率: {len(analysis_results)/len(stocks_map)*100:.1f}%")
 
-# 从CSV读取结果并做过滤排序
-if os.path.exists(sig_filename) and os.path.getsize(sig_filename) > 0:
+# 保存分析结果到CSV文件
+if analysis_results:
     try:
-        results_df = pd.read_csv(sig_filename, dtype={'股票代码': str})
-        if results_df.empty:
-            print("结果文件为空，无法进行过滤与排序。")
-        else:
-            # 过滤最大回撤小于20%的股票
-            filtered_df = results_df[results_df['最大回撤(%)'] < 20].copy()
+        results_df = pd.DataFrame(analysis_results)
+        
+        # 过滤最大回撤小于20%的股票
+        results_df = results_df[results_df['最大回撤(%)'] < 20]
+        
+        # 按收益率、夏普比率、最大回撤排序（收益率降序，夏普比率降序，最大回撤升序）
+        results_df = results_df.sort_values(['收益率(%)', '夏普比率', '最大回撤(%)'], 
+                                          ascending=[False, False, True])
+        
+        # 统一时间戳，方便关联两个输出文件
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        
+        # 保存完整分析结果到CSV文件
+        output_filename = f'all_stock_hk_analysis_results_{timestamp}.csv'
+        results_df.to_csv(output_filename, index=False, encoding='utf-8-sig')
+        print(f"\n分析结果已保存到: {output_filename}")
+
+        # 只保存筛选后的股票代码和名称，便于后续作为股票池使用
+        stock_list_filename = f'filtered_stocks_{timestamp}.csv'
+        results_df[['股票代码', '股票名称']].to_csv(stock_list_filename, index=False, encoding='utf-8-sig')
+        print(f"筛选后的股票列表已保存到: {stock_list_filename}")
+        
+        # 显示过滤后的统计信息
+        print(f"\n=== 过滤后统计 ===")
+        print(f"最大回撤<20%的股票数: {len(results_df)}")
+        print(f"过滤后成功率: {len(results_df)/len(stocks_map)*100:.1f}%")
+
+        # 发送邮件（综合排名前10名，所有字段）
+        try:
+            send = send_email.SendEmail()
+            user_list = ['lzl_kni@qq.com']
+            sub = "股票分析结果前10名（综合排名）"
+            # 只取前10名股票，包含所有字段
+            top_10 = results_df.head(10)
+            content = f"分析结果已保存到: {output_filename}\n\n"
+            content += f"最大回撤<20%的股票数: {len(results_df)}\n"
+            content += f"过滤后成功率: {len(results_df)/len(stocks_map)*100:.1f}%\n\n"
+            content += "综合排名前10名股票（按收益率、夏普比率、最大回撤排序）：\n\n"
+            content += top_10.to_string(index=False)
+            send.send_mail(user_list, sub, content)
+            print("综合排名前10名股票已通过邮件发送到 lzl_kni@qq.com")
+        except Exception as e:
+            print(f"发送邮件失败: {e}")
+        
+        # 显示前10名股票
+        print(f"\n=== 综合排名前10名股票（最大回撤<20%） ===")
+        top_10 = results_df.head(10)
+        for _, row in top_10.iterrows():
+            print(f"{row['股票代码']} {row['股票名称']}: 收益率{row['收益率(%)']}% 夏普比率{row['夏普比率']} 最大回撤{row['最大回撤(%)']}% 回撤持续{row['最大回撤持续天数']}天")
             
-            if filtered_df.empty:
-                print("没有满足最大回撤<20%的股票。")
-            else:
-                # 按收益率、夏普比率、最大回撤排序（收益率降序，夏普比率降序，最大回撤升序）
-                filtered_df = filtered_df.sort_values(['收益率(%)', '夏普比率', '最大回撤(%)'],
-                                                      ascending=[False, False, True])
-                
-                # 统一时间戳，方便关联两个输出文件
-                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-                
-                # 保存完整分析结果到CSV文件
-                output_filename = f'all_stock_hk_analysis_results_{timestamp}.csv'
-                filtered_df.to_csv(output_filename, index=False, encoding='utf-8-sig')
-                print(f"\n过滤后的分析结果已保存到: {output_filename}")
-
-                # 只保存筛选后的股票代码和名称，便于后续作为股票池使用
-                stock_list_filename = f'filtered_stocks_{timestamp}.csv'
-                filtered_df[['股票代码', '股票名称']].to_csv(stock_list_filename, index=False, encoding='utf-8-sig')
-                print(f"筛选后的股票列表已保存到: {stock_list_filename}")
-                
-                # 显示过滤后的统计信息
-                print(f"\n=== 过滤后统计 ===")
-                print(f"最大回撤<20%的股票数: {len(filtered_df)}")
-
-                # 发送邮件（综合排名前10名，所有字段）
-                try:
-                    send = send_email.SendEmail()
-                    user_list = ['lzl_kni@qq.com']
-                    sub = "股票分析结果前10名（综合排名）"
-                    top_10 = filtered_df.head(10)
-                    content = f"过滤后的分析结果已保存到: {output_filename}\n\n"
-                    content += f"最大回撤<20%的股票数: {len(filtered_df)}\n"
-                    content += f"结果来源: {results_csv}\n\n"
-                    content += "综合排名前10名股票（按收益率、夏普比率、最大回撤排序）：\n\n"
-                    content += top_10.to_string(index=False)
-                    send.send_mail(user_list, sub, content)
-                    print("综合排名前10名股票已通过邮件发送到 lzl_kni@qq.com")
-                except Exception as e:
-                    print(f"发送邮件失败: {e}")
-                
-                # 显示前10名股票
-                print(f"\n=== 综合排名前10名股票（最大回撤<20%） ===")
-                top_10 = filtered_df.head(10)
-                for _, row in top_10.iterrows():
-                    print(f"{row['股票代码']} {row['股票名称']}: 收益率{row['收益率(%)']}% 夏普比率{row['夏普比率']} 最大回撤{row['最大回撤(%)']}% 回撤持续{row['最大回撤持续天数']}天")
     except Exception as e:
-        print(f"处理结果文件时发生错误: {e}")
-else:
-    print("没有可用于过滤/排序的历史结果。")
+        print(f"保存结果时发生错误: {e}")
+else: 
+    print("没有成功分析任何股票")

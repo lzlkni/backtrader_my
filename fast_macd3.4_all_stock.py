@@ -8,6 +8,8 @@ import pandas as pd
 
 from backtrader.indicators import EMA, Lowest
 
+import os, sys
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), 'common'))
 import send_email
 from PrintAnalyzer import *
 from datetime import date
@@ -241,7 +243,7 @@ analysis_results = []
 # 002460 赣锋锂业
 # 从CSV文件读取股票代码与名称（文件无表头，含注释行）
 stocks_df = pd.read_csv(
-    'stocks.csv',
+    '/etc/cron.d/stocks.csv',
     header=None,
     names=['code', 'name'],
     comment='#',
@@ -265,10 +267,10 @@ for stock in stocks_map.keys():
 
     stock_hfq_df.columns = [
         'date',
-        'open',
-        'close',
+        'open',        
         'high',
         'low',
+        'close',
         'volume',
     ]
     pd.set_option('display.max_rows', None)
@@ -403,7 +405,7 @@ if analysis_results:
                                           ascending=[False, False, True])
         
         # 保存到CSV文件
-        output_filename = f'all_stock_hk_analysis_results_{datetime.now().strftime("%Y%m%d_%H%M%S")}.csv'
+        output_filename = f'all_stock_analysis_results_{datetime.now().strftime("%Y%m%d_%H%M%S")}.csv'
         results_df.to_csv(output_filename, index=False, encoding='utf-8-sig')
         print(f"\n分析结果已保存到: {output_filename}")
         
@@ -424,7 +426,7 @@ if analysis_results:
             content += f"过滤后成功率: {len(results_df)/len(stocks_map)*100:.1f}%\n\n"
             content += "综合排名前10名股票（按收益率、夏普比率、最大回撤排序）：\n\n"
             content += top_10.to_string(index=False)
-            # send.send_mail(user_list, sub, content)
+            send.send_mail(user_list, sub, content)
             print("综合排名前10名股票已通过邮件发送到 lzl_kni@qq.com")
         except Exception as e:
             print(f"发送邮件失败: {e}")

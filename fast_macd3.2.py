@@ -8,6 +8,8 @@ import pandas as pd
 
 from backtrader.indicators import EMA, Lowest
 
+import os, sys
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), 'common'))
 import send_email
 from PrintAnalyzer import *
 from datetime import date

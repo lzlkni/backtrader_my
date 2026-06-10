@@ -336,7 +336,7 @@ def get_top_concept_returns_from_ths(top_n: int = 10):
         return None
 
     result_df = pd.DataFrame()  # 新增结果DataFrame
-    for _, row in concept_df.head(2).iterrows():
+    for _, row in concept_df.iterrows():
         symbol = row["name"]
         sector_name = row["code"]
         print(f"正在获取板块 {sector_name}({symbol}) 指数")
@@ -382,7 +382,7 @@ def get_top_concept_returns_from_ths(top_n: int = 10):
         print("未计算出任何板块的涨跌幅。")
         return None
 
-    top_df = result_df.sort_values(['成交额', '涨跌幅(%)'], ascending=[False, False]).head(top_n)
+    top_df = result_df.sort_values(['涨跌幅(%)', '成交额'], ascending=[False, False]).head(top_n)
     print(f"\n涨幅前 {top_n} 的板块：")
     print(top_df[['板块名称', '板块代码', '涨跌幅(%)']].to_string(index=False))
     return top_df

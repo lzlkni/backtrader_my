@@ -8,6 +8,8 @@ import pandas as pd
 
 from backtrader.indicators import EMA, Lowest
 
+import os, sys
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), 'common'))
 import send_email
 from PrintAnalyzer import *
 from datetime import date
@@ -251,10 +253,10 @@ end_date = datetime.today().strftime('%Y%m%d')
 # 300568 星源材质
 # 002460 赣锋锂业
 
-stocks_map = dict([('sz300568', '星源材质'), ('sz002460', '赣锋锂业'), ('sz000858', '五粮液'), ("sz000333", "美的"), ("sh603259", "药明"), 
-                   ('sz300638', '广和'), ('sz002881', '美格'), ('sh603118', '共进'),('sh600507', '方大特钢'),('sh601088', '中国神华'),('sh600660', '福耀玻璃'),('sz000099', '中信海直')]
-                   )
-# stocks_map = dict([('300568', '星源材质')])
+# stocks_map = dict([('sz300568', '星源材质'), ('sz002460', '赣锋锂业'), ('sz000858', '五粮液'), ("sz000333", "美的"), ("sh603259", "药明"), 
+#                    ('sz300638', '广和'), ('sz002881', '美格'), ('sh603118', '共进'),('sh600507', '方大特钢'),('sh601088', '中国神华'),('sh600660', '福耀玻璃'),('sz000099', '中信海直')]
+#                    )
+stocks_map = dict([('sz300568', '星源材质')])
 # stocks_map = dict([('002460', '赣锋锂业')])
 # stocks_map = dict([('000858', '五粮液')])
 # stocks_map = dict([('000333', '美的')])
@@ -328,7 +330,7 @@ for stock in stocks_map.keys():
 
     printTradeAnalysis(cerebro, result[0].analyzers)
 
-    # cerebro.plot(style='candlestick', volume=True)  # 画图
+    cerebro.plot(style='candlestick', volume=True)  # 画图
 
     # input('next')
     time.sleep(10)

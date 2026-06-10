@@ -8,6 +8,8 @@ import pandas as pd
 
 from backtrader.indicators import EMA, Lowest
 
+import os, sys
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), 'common'))
 import send_email
 from PrintAnalyzer import *
 from datetime import date
@@ -435,7 +437,7 @@ if analysis_results:
         results_df = results_df.sort_values('收益率(%)', ascending=False)
         
         # 保存到CSV文件
-        output_filename = f'hk_analysis_results_{datetime.now().strftime("%Y%m%d_%H%M%S")}.csv'
+        output_filename = f'analysis_results_{datetime.now().strftime("%Y%m%d_%H%M%S")}.csv'
         results_df.to_csv(output_filename, index=False, encoding='utf-8-sig')
         print(f"\n分析结果已保存到: {output_filename}")
         

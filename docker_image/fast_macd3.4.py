@@ -2,7 +2,7 @@ from datetime import datetime
 import time
 
 import backtrader as bt
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 import akshare as ak
 import pandas as pd
 
@@ -234,11 +234,11 @@ end_date = datetime.today().strftime('%Y%m%d')
 # 300568 星源材质
 # 002460 赣锋锂业
 
-stocks_map = dict([('300568', '星源材质'), ('002460', '赣锋锂业'), ('000858', '五粮液'), ("000333", "美的"), ("603259", "药明"), 
-                   ('300638', '广和'), ('002881', '美格'), ('603118', '共进'),('600507', '方大特钢'),('601088', '中国神华')]
-                   )
+# stocks_map = dict([('300568', '星源材质'), ('002460', '赣锋锂业'), ('000858', '五粮液'), ("000333", "美的"), ("603259", "药明"), 
+#                    ('300638', '广和'), ('002881', '美格'), ('603118', '共进'),('600507', '方大特钢'),('601088', '中国神华')]
+                #    )
 # stocks_map = dict([('300568', '星源材质')])
-# stocks_map = dict([('002460', '赣锋锂业')])
+stocks_map = dict([('002460', '赣锋锂业')])
 # stocks_map = dict([('000858', '五粮液')])
 # stocks_map = dict([('000333', '美的')])
 # stocks_map = dict([('603259', '药明')])
@@ -311,7 +311,7 @@ for stock in stocks_map.keys():
 
     printTradeAnalysis(cerebro, result[0].analyzers)
 
-    # cerebro.plot(style='candlestick', volume=True)  # 画图
+    cerebro.plot(style='candlestick', volume=True)  # 画图
 
     # input('next')
     time.sleep(10)

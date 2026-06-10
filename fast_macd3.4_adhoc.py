@@ -133,6 +133,8 @@ class fast_macd_strtgy(bt.Strategy):
         # 检查是否持仓
         if not self.position:  # 没有持仓
 
+
+
             if self.upCrossSignal.crossOver == 1 and self.fastMacd.l.signal[0] > 0: # If macd > 0        
 
                 # 使用共用方法计算止盈止损
@@ -166,8 +168,8 @@ class fast_macd_strtgy(bt.Strategy):
 
             if self.data_close[0] >= self.out_point_up or self.data_close[0] <= self.out_point_down:  
             # if self.data_high[0] >= self.out_point_up or self.data_high[0] <= self.out_point_down:
-                self.log(f"Sell tomorrow!")
-                self.email_notify(f"Sell tomorrow!")
+                self.log(f"{self.datas[0].datetime.date(0)} Sell tomorrow!")
+                self.email_notify(f"{self.datas[0].datetime.date(0)} Sell tomorrow!")
                 self.order = self.close()  # 执行卖出
 
     def notify_order(self, order):
@@ -190,9 +192,9 @@ class fast_macd_strtgy(bt.Strategy):
 
             else:
                 self.log(
-                    f"{self.stock_code} Sell executed, Price: {order.executed.price: .2f}, Cost: {order.executed.value}"
+                    f"{self.stock_code} Sell executed, Price: {order.executed.price: .2f}, Cost: {order.executed.value}, Comm：{order.executed.comm}"
                 )
-                self.email_notify(f"Sell executed, Price: {order.executed.price: .2f}, Cost: {order.executed.value}")
+                self.email_notify(f"Sell executed, Price: {order.executed.price: .2f}, Cost: {order.executed.value}, Comm：{order.executed.comm}")
             self.bar_executed = len(self)
 
         elif order.status in [order.Canceled, order.Margin, order.Rejected]:
@@ -322,7 +324,7 @@ def main():
     parser = argparse.ArgumentParser(description='股票回测系统')
     parser.add_argument('--stocks_file', '-f', type=str, default='',
                        help='股票列表文件路径 (默认: stocks.csv)')
-    parser.add_argument('--start_date', '-s', type=str, default='20240101',
+    parser.add_argument('--start_date', '-s', type=str, default='20220101',
                        help='回测开始日期 (格式: YYYYMMDD, 默认: 20220101)')
     parser.add_argument('--end_date', '-e', type=str, default=datetime.today().strftime('%Y%m%d'),
                        help='回测结束日期 (格式: YYYYMMDD, 默认: 今天)')
@@ -340,55 +342,34 @@ def main():
     # 如果没有指定文件或文件为空，使用默认股票列表
     if not stocks_map:
         print("使用默认股票列表")
-
         stocks_map = {
-            'sz301209': '联合化学',
-            'sh688143': '长盈通',
-            'sz300255': '常山药业',
-            'sz002364': '中恒电气',
-            'sz300607': '拓斯达',
-            'sz002131': '利欧股份',
-            'sh688521': '芯原股份',
-            'sh600580': '卧龙电驱',
-            'sz301377': '鼎泰高科',
-            'sz002779': '中坚科技', 
-            'sz002460': '赣锋锂业', 
+            # 'sz002022': '科华生物'
+            # 'sz001221': '悍高集团'
+            # 'sz000592': '平潭发展',
+            'sz300568': '星源材质', 
+            'sz002460': '赣锋锂业',
             'sz000858': '五粮液', 
             'sz000333': '美的', 
             'sh603259': '药明',
             'sz300638': '广和', 
             'sz002881': '美格', 
             'sh603118': '共进',
-            'sh600507': '方大特钢',
-            'sh601088': '中国神华',
-            'sz300654': '世纪天鸿',
-            'sh603011': '合锻智能',
-            'sh688095': '福昕软件',        
-            'sh600895': '张江高科',
-            'sh600119': '长江投资',
-            'sz301308': '江波龙',            
-            'sz002466': '天齐锂业',            
-            'sh688168': '安博通',
-            'sh688195': '腾景科技',
-            'sh600580': '卧龙电驱',
-            'sz002413': '雷科防务',
-            'sz002813': '路畅科技',
-            'sz300007': '汉威科技',
-            'sz300502': '新易盛',
-            'sz000962': '东方钽业',
-            'sz002050': '三花智控',
-            "sz300842": "帝科股份",
-            'sh600198': '大唐电信'
+            # 'sh600507': '方大特钢',
+            # 'sh601088': '中国神华',
+            # 'sz300654': '世纪天鸿',
+            # 'sh603011': '合锻智能',
+            # 'sh688095': '福昕软件',        
+            # 'sh600895': '张江高科',
+            # 'sh600119': '长江投资',
+            # 'sz301308': '江波龙',
+            # 'sh688425': '铁建重工'
         }
-        # stocks_map = {
-        #      'sz301377': '鼎泰高科'
-        # }
         
 
     for stock_code in stocks_map.keys():
         
         stock_name = stocks_map[stock_code]
-        # stock_hfq_df = ak.stock_zh_a_hist(symbol=stock_code, adjust="qfq", start_date=start_date, end_date=end_date).iloc[:, :6]  # 利用 AkShare 一行获取复权数据
+        # stock_hfq_df = ak.stock_zh_a_hist(symbol=stock, adjust="qfq", start_date=start_date, end_date=end_date).iloc[:, :6]  # 利用 AkShare 一行获取复权数据
         
         stock_hfq_df = ak.stock_zh_a_daily(symbol=stock_code, adjust="qfq", start_date=start_date, end_date=end_date).iloc[:, :6]
         if len(stock_hfq_df) < 30:
@@ -397,9 +378,9 @@ def main():
         stock_hfq_df.columns = [
             'date',
             'open',
+            'close',
             'high',
             'low',
-            'close',
             'volume',
         ]
 
