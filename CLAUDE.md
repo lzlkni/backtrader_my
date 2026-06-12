@@ -5,6 +5,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Working Rules
 
 - **Plan before acting.** For any non-trivial change, explore the relevant code, lay out a plan covering what needs to change and why, and wait for user approval before writing code. Do not jump straight to implementation.
+- **Plans must be saved.** Every plan is written to `C:\Users\lzl_k\.claude\plans\<name>.md` before any code changes. When a task is finished, update the plan file to mark it complete (change `[ ]` → `[x]` or add a `## ✅ Completed` section). Plans are the permanent record of what was done.
 
 ## Project Overview
 
@@ -92,10 +93,6 @@ akshare.stock_zh_a_daily(symbol=code, adjust="qfq")  →  pandas DataFrame (6 co
     → analyzers → printTradeAnalysis()
 ```
 
-### Server Mode
-
-`backtest_server.py` is an HTTP server (port 18765) that spawns `fast_macd3.4_ai.py` as a subprocess per request. It injects `conda/Library/bin` into PATH to fix SSL DLL loading. Logs go to `server.log`.
-
 ## Key Gotchas
 
 - **No linter, formatter, or typecheck.** No pre-commit hooks.
@@ -108,6 +105,7 @@ akshare.stock_zh_a_daily(symbol=code, adjust="qfq")  →  pandas DataFrame (6 co
 - Stock codes use akshare prefix format: `sz300568`, `sh600580`. The `load_stocks_from_file()` function expects this format.
 - `InOutLine.upper` calculation differs between files: `fast_macd_base.py` and `fast_macd3.4_all_stock.py` use `lowest * 1.5`; `fast_macd3.4.py` uses `bt.ind.Highest(period=12)`. This is intentional divergence between versions.
 - `fast_macd3.4_ai.py` uses lazy imports (heavy libs imported inside functions) for faster startup when called as subprocess.
+- **All strategy files add `common/` to `sys.path`** at the top via `sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), 'common'))`. This is how they find `send_email` and `PrintAnalyzer` after the directory reorganization. If you add a new helper to `common/`, no import changes are needed in strategy files — but if you add a new strategy file, you must include this `sys.path` insertion.
 
 ## Directory Map
 
