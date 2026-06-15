@@ -6,6 +6,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 - **Plan before acting.** For any non-trivial change, explore the relevant code, lay out a plan covering what needs to change and why, and wait for user approval before writing code. Do not jump straight to implementation.
 - **Plans must be saved.** Every plan is written to `C:\Users\lzl_k\.claude\plans\<name>.md` before any code changes. When a task is finished, update the plan file to mark it complete (change `[ ]` → `[x]` or add a `## ✅ Completed` section). Plans are the permanent record of what was done.
+- **Algo changes require a full test run.** Every time a strategy algorithm is modified (indicators, stop-loss, take-profit, filters, parameter logic, etc.), you must run the default stock list end-to-end and record the results. This ensures no regression and provides a baseline for comparison.
+- **Compare against all prior versions.** Each new algo version must be tested against all previous versions in the chain: `fast_macd3.4_ai.py` → `fast_macd3.4_ai2.py` → `fast_macd3.4_ai3.py` → ... → latest. Use the same default stock list and date range for a fair comparison. Record results in `ai3_vs_ai2_comparison.md` (or similar). This shows whether each iteration actually improves performance.
 
 ## Project Overview
 
