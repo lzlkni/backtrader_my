@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(\"D:\\\\Users\\\\lzl_k\\\\anaconda3\\\\envs\\\\backtrader\\\\python.exe\" \"D:\\\\Users\\\\lzl_k\\\\PycharmProjects\\\\backtrader\\\\make_combo.py\")",
+      "Bash(\"D:\\\\Users\\\\lzl_k\\\\anaconda3\\\\envs\\\\backtrader\\\\python.exe\" -m py_compile \"D:\\\\Users\\\\lzl_k\\\\PycharmProjects\\\\backtrader\\\\fast_macd3.4_ai3_combo.py\")",
+      "Bash(Get-Content ai3_rr_output.txt -TotalCount 20)",
+      "Bash(Test-Path \"ai3_rr_output.txt\")",
+      "Bash(python -c ' *)"
+    ]
+  }
+}
