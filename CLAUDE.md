@@ -103,6 +103,7 @@ akshare.stock_zh_a_daily(symbol=code, adjust="qfq")  →  pandas DataFrame (6 co
 - **`openclaw.json`** (if present) has API keys for Moonshot, ModelScope, Google, LongCat. Do not expose.
 - Stock data is fetched live from akshare — scripts fail without internet. CSV files in root are cached stock lists, not strategy inputs.
 - Strategy versions (3.1→3.5) are separate files, not branches. Changes to `fast_macd3.4.py` are the live version.
+- **v5 (`fast_macd3.4_v5.py`) is the recommended version**: `upper_mult=2.5, macd_high_thresh=0.8, macd_low_thresh=0.4, macd_high_factor=0.3, macd_low_factor=0.6, profit_threshold=8.0, sell_pct=30.0`. Avg +42.22%, win rate 81%, Sharpe 1.03.
 - `PrintAnalyzer.py` is imported via `from PrintAnalyzer import *` in strategy files.
 - Stock codes use akshare prefix format: `sz300568`, `sh600580`. The `load_stocks_from_file()` function expects this format.
 - `InOutLine.upper` calculation differs between files: `fast_macd_base.py` and `fast_macd3.4_all_stock.py` use `lowest * 1.5`; `fast_macd3.4.py` uses `bt.ind.Highest(period=12)`. This is intentional divergence between versions.

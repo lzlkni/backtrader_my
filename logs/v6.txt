@@ -1,0 +1,1012 @@
+错误：文件  不存在
+使用默认股票列表
+Stock: 联合化学
+初始资金: 100000
+总资金: 109610.05
+净收益: 9610.05
+Backtesting Results
+  Open Positions           : -                       
+  Closed Trades            : 7                       
+  Winning Trades           : 3                       
+  Loosing Trades           : 4                       
+
+
+  Longest Winning Streak   : 2                       
+  Longest Loosing Streak   : 2                       
+  Strike Rate (Win/closed) : 42.857142857142854      
+
+
+  Net P/L                  : $9610.05                
+  P/L Average per trade    : $1372.86                
+
+
+  Drawdown                 : $5.886798749848016      
+  Sharpe Ratio:            : 0.31132427701006354     
+  VRW                      : 3.9828602381132985      
+  SQN                      : 0.3147461586140149      
+
+
+最大回撤: 16.78%
+最大回撤持续时间: 122 天
+Stock: 长盈通
+初始资金: 100000
+总资金: 197225.18
+净收益: 97225.18
+Backtesting Results
+  Open Positions           : -                       
+  Closed Trades            : 2                       
+  Winning Trades           : 1                       
+  Loosing Trades           : 1                       
+
+
+  Longest Winning Streak   : 1                       
+  Longest Loosing Streak   : 1                       
+  Strike Rate (Win/closed) : 50.0                    
+
+
+  Net P/L                  : $97225.18               
+  P/L Average per trade    : $48612.59               
+
+
+  Drawdown                 : $10.943925160155036     
+  Sharpe Ratio:            : 0.8518324016615105      
+  VRW                      : 27.002399984793854      
+  SQN                      : 1.055267198994216       
+
+
+最大回撤: 10.94%
+最大回撤持续时间: 70 天
+Stock: 常山药业
+初始资金: 100000
+总资金: 175559.79
+净收益: 75559.79
+Backtesting Results
+  Open Positions           : -                       
+  Closed Trades            : 5                       
+  Winning Trades           : 3                       
+  Loosing Trades           : 2                       
+
+
+  Longest Winning Streak   : 2                       
+  Longest Loosing Streak   : 2                       
+  Strike Rate (Win/closed) : 60.0                    
+
+
+  Net P/L                  : $75559.79               
+  P/L Average per trade    : $15111.96               
+
+
+  Drawdown                 : $1.3047552343510684     
+  Sharpe Ratio:            : 1.440303919060338       
+  VRW                      : 21.69873699513546       
+  SQN                      : 1.8232105661480733      
+
+
+最大回撤: 7.35%
+最大回撤持续时间: 57 天
+Stock: 中恒电气
+初始资金: 100000
+总资金: 98881.05
+净收益: -1118.95
+Backtesting Results
+  Open Positions           : -                       
+  Closed Trades            : 5                       
+  Winning Trades           : 2                       
+  Loosing Trades           : 3                       
+
+
+  Longest Winning Streak   : 1                       
+  Longest Loosing Streak   : 3                       
+  Strike Rate (Win/closed) : 40.0                    
+
+
+  Net P/L                  : $-1118.95               
+  P/L Average per trade    : $-223.79                
+
+
+  Drawdown                 : $20.063225730451883     
+  Sharpe Ratio:            : -0.024205646880391174   
+  VRW                      : -0.5152680742011368     
+  SQN                      : -0.04687326702756034    
+
+
+最大回撤: 23.56%
+最大回撤持续时间: 98 天
+Stock: 拓斯达
+初始资金: 100000
+总资金: 115906.04
+净收益: 15906.04
+Backtesting Results
+  Open Positions           : -                       
+  Closed Trades            : 5                       
+  Winning Trades           : 4                       
+  Loosing Trades           : 1                       
+
+
+  Longest Winning Streak   : 2                       
+  Longest Loosing Streak   : 1                       
+  Strike Rate (Win/closed) : 80.0                    
+
+
+  Net P/L                  : $15906.04               
+  P/L Average per trade    : $3181.21                
+
+
+  Drawdown                 : $11.697796188573733     
+  Sharpe Ratio:            : 0.48407241038272153     
+  VRW                      : 6.138087291261458       
+  SQN                      : 1.0976501125688585      
+
+
+最大回撤: 20.36%
+最大回撤持续时间: 131 天
+Stock: 利欧股份
+初始资金: 100000
+总资金: 186447.37
+净收益: 86447.37
+Backtesting Results
+  Open Positions           : -                       
+  Closed Trades            : 5                       
+  Winning Trades           : 4                       
+  Loosing Trades           : 1                       
+
+
+  Longest Winning Streak   : 4                       
+  Longest Loosing Streak   : 1                       
+  Strike Rate (Win/closed) : 80.0                    
+
+
+  Net P/L                  : $86447.37               
+  P/L Average per trade    : $17289.47               
+
+
+  Drawdown                 : $9.84555989222341       
+  Sharpe Ratio:            : 1.9798816628608822      
+  VRW                      : 24.093270471645486      
+  SQN                      : 2.589961488172934       
+
+
+最大回撤: 9.85%
+最大回撤持续时间: 78 天
+Stock: 芯原股份
+初始资金: 100000
+总资金: 175880.26
+净收益: 75880.26
+Backtesting Results
+  Open Positions           : -                       
+  Closed Trades            : 3                       
+  Winning Trades           : 2                       
+  Loosing Trades           : 1                       
+
+
+  Longest Winning Streak   : 2                       
+  Longest Loosing Streak   : 1                       
+  Strike Rate (Win/closed) : 66.66666666666666       
+
+
+  Net P/L                  : $75880.26               
+  P/L Average per trade    : $25293.42               
+
+
+  Drawdown                 : $12.247520223091616     
+  Sharpe Ratio:            : 1.5982801672547344      
+  VRW                      : 21.761308403866092      
+  SQN                      : 1.8736478211675271      
+
+
+最大回撤: 13.16%
+最大回撤持续时间: 48 天
+Stock: 卧龙电驱
+初始资金: 100000
+总资金: 169983.65
+净收益: 69983.65
+Backtesting Results
+  Open Positions           : -                       
+  Closed Trades            : 3                       
+  Winning Trades           : 3                       
+  Loosing Trades           : -                       
+
+
+  Longest Winning Streak   : 3                       
+  Longest Loosing Streak   : -                       
+  Strike Rate (Win/closed) : 100.0                   
+
+
+  Net P/L                  : $69983.65               
+  P/L Average per trade    : $23327.88               
+
+
+  Drawdown                 : $9.306923685124781      
+  Sharpe Ratio:            : 2.062526379119292       
+  VRW                      : 20.43925454310366       
+  SQN                      : 7.2977347838316735      
+
+
+最大回撤: 9.31%
+最大回撤持续时间: 79 天
+Stock: 鼎泰高科
+初始资金: 100000
+总资金: 98863.38
+净收益: -1136.62
+Backtesting Results
+  Open Positions           : -                       
+  Closed Trades            : 4                       
+  Winning Trades           : 1                       
+  Loosing Trades           : 3                       
+
+
+  Longest Winning Streak   : 1                       
+  Longest Loosing Streak   : 2                       
+  Strike Rate (Win/closed) : 25.0                    
+
+
+  Net P/L                  : $-1136.62               
+  P/L Average per trade    : $-284.16                
+
+
+  Drawdown                 : $10.49566693081642      
+  Sharpe Ratio:            : -0.1377764473182351     
+  VRW                      : -0.5473889267220353     
+  SQN                      : -0.06782521722883708    
+
+
+最大回撤: 14.54%
+最大回撤持续时间: 70 天
+Stock: 中坚科技
+初始资金: 100000
+总资金: 140563.58
+净收益: 40563.58
+Backtesting Results
+  Open Positions           : -                       
+  Closed Trades            : 6                       
+  Winning Trades           : 4                       
+  Loosing Trades           : 2                       
+
+
+  Longest Winning Streak   : 3                       
+  Longest Loosing Streak   : 1                       
+  Strike Rate (Win/closed) : 66.66666666666666       
+
+
+  Net P/L                  : $40563.58               
+  P/L Average per trade    : $6760.6                 
+
+
+  Drawdown                 : $8.701509016926618      
+  Sharpe Ratio:            : 1.1110640971574808      
+  VRW                      : 13.272672677152254      
+  SQN                      : 1.2822404945228507      
+
+
+最大回撤: 8.70%
+最大回撤持续时间: 46 天
+Stock: 赣锋锂业
+初始资金: 100000
+总资金: 145859.66
+净收益: 45859.66
+Backtesting Results
+  Open Positions           : 1                       
+  Closed Trades            : 5                       
+  Winning Trades           : 3                       
+  Loosing Trades           : 2                       
+
+
+  Longest Winning Streak   : 3                       
+  Longest Loosing Streak   : 1                       
+  Strike Rate (Win/closed) : 60.0                    
+
+
+  Net P/L                  : $45926.67               
+  P/L Average per trade    : $9185.33                
+
+
+  Drawdown                 : $4.650784862394742      
+  Sharpe Ratio:            : 1.4564162465085848      
+  VRW                      : 14.634996573513272      
+  SQN                      : 1.2695192586381896      
+
+
+最大回撤: 9.20%
+最大回撤持续时间: 79 天
+Stock: 五粮液
+初始资金: 100000
+总资金: 112685.25
+净收益: 12685.25
+Backtesting Results
+  Open Positions           : -                       
+  Closed Trades            : 3                       
+  Winning Trades           : 3                       
+  Loosing Trades           : -                       
+
+
+  Longest Winning Streak   : 3                       
+  Longest Loosing Streak   : -                       
+  Strike Rate (Win/closed) : 100.0                   
+
+
+  Net P/L                  : $12685.25               
+  P/L Average per trade    : $4228.42                
+
+
+  Drawdown                 : $0.0                    
+  Sharpe Ratio:            : 0.7534111109343592      
+  VRW                      : 5.110125797210309       
+  SQN                      : 3.61504543595309        
+
+
+最大回撤: 4.61%
+最大回撤持续时间: 13 天
+Stock: 美的
+初始资金: 100000
+总资金: 100984.19
+净收益: 984.19
+Backtesting Results
+  Open Positions           : -                       
+  Closed Trades            : 2                       
+  Winning Trades           : 1                       
+  Loosing Trades           : 1                       
+
+
+  Longest Winning Streak   : 1                       
+  Longest Loosing Streak   : 1                       
+  Strike Rate (Win/closed) : 50.0                    
+
+
+  Net P/L                  : $984.19                 
+  P/L Average per trade    : $492.1                  
+
+
+  Drawdown                 : $0.06830432379405973    
+  Sharpe Ratio:            : -0.20277052862327       
+  VRW                      : 0.5069135123009749      
+  SQN                      : 0.1376564580825707      
+
+
+最大回撤: 6.54%
+最大回撤持续时间: 97 天
+Stock: 药明
+初始资金: 100000
+总资金: 94841.24
+净收益: -5158.76
+Backtesting Results
+  Open Positions           : -                       
+  Closed Trades            : 2                       
+  Winning Trades           : 1                       
+  Loosing Trades           : 1                       
+
+
+  Longest Winning Streak   : 1                       
+  Longest Loosing Streak   : 1                       
+  Strike Rate (Win/closed) : 50.0                    
+
+
+  Net P/L                  : $-5158.76               
+  P/L Average per trade    : $-2579.38               
+
+
+  Drawdown                 : $5.956447601759794      
+  Sharpe Ratio:            : -0.6277370537447517     
+  VRW                      : -2.3364400826974383     
+  SQN                      : -0.6786459612240048     
+
+
+最大回撤: 8.87%
+最大回撤持续时间: 76 天
+Stock: 广和
+初始资金: 100000
+总资金: 113325.16
+净收益: 13325.16
+Backtesting Results
+  Open Positions           : -                       
+  Closed Trades            : 3                       
+  Winning Trades           : 1                       
+  Loosing Trades           : 2                       
+
+
+  Longest Winning Streak   : 1                       
+  Longest Loosing Streak   : 2                       
+  Strike Rate (Win/closed) : 33.33333333333333       
+
+
+  Net P/L                  : $13325.16               
+  P/L Average per trade    : $4441.72                
+
+
+  Drawdown                 : $10.296731082865453     
+  Sharpe Ratio:            : 0.6269251101443792      
+  VRW                      : 5.311586342102621       
+  SQN                      : 0.6545728373739672      
+
+
+最大回撤: 10.30%
+最大回撤持续时间: 139 天
+Stock: 美格
+初始资金: 100000
+总资金: 105462.93
+净收益: 5462.93
+Backtesting Results
+  Open Positions           : -                       
+  Closed Trades            : 4                       
+  Winning Trades           : 2                       
+  Loosing Trades           : 2                       
+
+
+  Longest Winning Streak   : 1                       
+  Longest Loosing Streak   : 2                       
+  Strike Rate (Win/closed) : 50.0                    
+
+
+  Net P/L                  : $5462.93                
+  P/L Average per trade    : $1365.73                
+
+
+  Drawdown                 : $0.0                    
+  Sharpe Ratio:            : 0.19626158969961247     
+  VRW                      : 2.4122305988836907      
+  SQN                      : 0.2248820276821874      
+
+
+最大回撤: 20.15%
+最大回撤持续时间: 53 天
+Stock: 共进
+初始资金: 100000
+总资金: 82633.58
+净收益: -17366.42
+Backtesting Results
+  Open Positions           : 1                       
+  Closed Trades            : 4                       
+  Winning Trades           : -                       
+  Loosing Trades           : 4                       
+
+
+  Longest Winning Streak   : -                       
+  Longest Loosing Streak   : 4                       
+  Strike Rate (Win/closed) : -                       
+
+
+  Net P/L                  : $-15111.06              
+  P/L Average per trade    : $-3777.77               
+
+
+  Drawdown                 : $19.175965930539693     
+  Sharpe Ratio:            : -1.345882905686694      
+  VRW                      : -6.53913572721398       
+  SQN                      : -2.8080514570766666     
+
+
+最大回撤: 19.18%
+最大回撤持续时间: 146 天
+Stock: 方大特钢
+初始资金: 100000
+总资金: 92038.7
+净收益: -7961.3
+Backtesting Results
+  Open Positions           : -                       
+  Closed Trades            : 4                       
+  Winning Trades           : 1                       
+  Loosing Trades           : 3                       
+
+
+  Longest Winning Streak   : 1                       
+  Longest Loosing Streak   : 3                       
+  Strike Rate (Win/closed) : 25.0                    
+
+
+  Net P/L                  : $-7961.3                
+  P/L Average per trade    : $-1990.32               
+
+
+  Drawdown                 : $7.961296736954711      
+  Sharpe Ratio:            : -1.5796380110219892     
+  VRW                      : -3.4286973117863817     
+  SQN                      : -1.6386628816005757     
+
+
+最大回撤: 9.49%
+最大回撤持续时间: 149 天
+Stock: 中国神华
+初始资金: 100000
+总资金: 97822.54
+净收益: -2177.46
+Backtesting Results
+  Open Positions           : -                       
+  Closed Trades            : 1                       
+  Winning Trades           : -                       
+  Loosing Trades           : 1                       
+
+
+  Longest Winning Streak   : -                       
+  Longest Loosing Streak   : 1                       
+  Strike Rate (Win/closed) : -                       
+
+
+  Net P/L                  : $-2177.46               
+  P/L Average per trade    : $-2177.46               
+
+
+  Drawdown                 : $5.1176381449716395     
+  Sharpe Ratio:            : -0.8854740996290039     
+D:\Users\lzl_k\anaconda3\envs\backtrader\lib\site-packages\akshare\__init__.py:3075: UserWarning: 为了支持更多特性，请将 Python 升级到 3.9.0 及以上版本！
+  warnings.warn(
+  VRW                      : -1.0822400351939772     
+  SQN                      : 0                       
+
+
+最大回撤: 5.12%
+最大回撤持续时间: 114 天
+Stock: 世纪天鸿
+初始资金: 100000
+总资金: 131322.43
+净收益: 31322.43
+Backtesting Results
+  Open Positions           : 1                       
+  Closed Trades            : 2                       
+  Winning Trades           : 1                       
+  Loosing Trades           : 1                       
+
+
+  Longest Winning Streak   : 1                       
+  Longest Loosing Streak   : 1                       
+  Strike Rate (Win/closed) : 50.0                    
+
+
+  Net P/L                  : $28239.55               
+  P/L Average per trade    : $14119.77               
+
+
+  Drawdown                 : $3.75408273192721       
+  Sharpe Ratio:            : 1.1842680577955016      
+  VRW                      : 10.776669201187834      
+  SQN                      : 0.8944440810785241      
+
+
+最大回撤: 8.47%
+最大回撤持续时间: 24 天
+Stock: 合锻智能
+初始资金: 100000
+总资金: 158393.55
+净收益: 58393.55
+Backtesting Results
+  Open Positions           : -                       
+  Closed Trades            : 6                       
+  Winning Trades           : 4                       
+  Loosing Trades           : 2                       
+
+
+  Longest Winning Streak   : 2                       
+  Longest Loosing Streak   : 2                       
+  Strike Rate (Win/closed) : 66.66666666666666       
+
+
+  Net P/L                  : $58393.55               
+  P/L Average per trade    : $9732.26                
+
+
+  Drawdown                 : $8.1981846359141        
+  Sharpe Ratio:            : 1.6905781565426392      
+  VRW                      : 17.75498954305465       
+  SQN                      : 1.7006775087518924      
+
+
+最大回撤: 8.65%
+最大回撤持续时间: 87 天
+Stock: 福昕软件
+初始资金: 100000
+总资金: 124134.01
+净收益: 24134.01
+Backtesting Results
+  Open Positions           : -                       
+  Closed Trades            : 3                       
+  Winning Trades           : 2                       
+  Loosing Trades           : 1                       
+
+
+  Longest Winning Streak   : 1                       
+  Longest Loosing Streak   : 1                       
+  Strike Rate (Win/closed) : 66.66666666666666       
+
+
+  Net P/L                  : $24134.01               
+  P/L Average per trade    : $8044.67                
+
+
+  Drawdown                 : $10.347569594420667     
+  Sharpe Ratio:            : 0.6914726545738761      
+  VRW                      : 8.691294650598305       
+  SQN                      : 0.7890821030588054      
+
+
+最大回撤: 15.63%
+最大回撤持续时间: 163 天
+Stock: 张江高科
+初始资金: 100000
+总资金: 103066.4
+净收益: 3066.4
+Backtesting Results
+  Open Positions           : -                       
+  Closed Trades            : 1                       
+  Winning Trades           : 1                       
+  Loosing Trades           : -                       
+
+
+  Longest Winning Streak   : 1                       
+  Longest Loosing Streak   : -                       
+  Strike Rate (Win/closed) : 100.0                   
+
+
+  Net P/L                  : $3066.4                 
+  P/L Average per trade    : $3066.4                 
+
+
+  Drawdown                 : $3.9624191864049907     
+  Sharpe Ratio:            : 0.06761978620762099     
+  VRW                      : 1.469126711501592       
+  SQN                      : 0                       
+
+
+最大回撤: 5.01%
+最大回撤持续时间: 70 天
+Stock: 长江投资
+初始资金: 100000
+总资金: 108240.8
+净收益: 8240.8
+Backtesting Results
+  Open Positions           : 1                       
+  Closed Trades            : 6                       
+  Winning Trades           : 4                       
+  Loosing Trades           : 2                       
+
+
+  Longest Winning Streak   : 4                       
+  Longest Loosing Streak   : 2                       
+  Strike Rate (Win/closed) : 66.66666666666666       
+
+
+  Net P/L                  : $5970.75                
+  P/L Average per trade    : $995.12                 
+
+
+  Drawdown                 : $12.817517162568365     
+  Sharpe Ratio:            : 0.29850574361808724     
+  VRW                      : 3.479639425390974       
+  SQN                      : 0.33570249130681296     
+
+
+最大回撤: 14.89%
+最大回撤持续时间: 137 天
+Stock: 江波龙
+初始资金: 100000
+总资金: 120843.77
+净收益: 20843.77
+Backtesting Results
+  Open Positions           : -                       
+  Closed Trades            : 2                       
+  Winning Trades           : 2                       
+  Loosing Trades           : -                       
+
+
+  Longest Winning Streak   : 2                       
+  Longest Loosing Streak   : -                       
+  Strike Rate (Win/closed) : 100.0                   
+
+
+  Net P/L                  : $20843.77               
+  P/L Average per trade    : $10421.89               
+
+
+  Drawdown                 : $0.8146857809228407     
+  Sharpe Ratio:            : 1.0801718762001395      
+  VRW                      : 7.74030083978547        
+  SQN                      : 14.941865578250143      
+
+
+最大回撤: 3.78%
+最大回撤持续时间: 65 天
+Stock: 天齐锂业
+初始资金: 100000
+总资金: 118803.56
+净收益: 18803.56
+Backtesting Results
+  Open Positions           : 1                       
+  Closed Trades            : 7                       
+  Winning Trades           : 3                       
+  Loosing Trades           : 4                       
+
+
+  Longest Winning Streak   : 2                       
+  Longest Loosing Streak   : 2                       
+  Strike Rate (Win/closed) : 42.857142857142854      
+
+
+  Net P/L                  : $19867.62               
+  P/L Average per trade    : $2838.23                
+
+
+  Drawdown                 : $15.16256467733992      
+  Sharpe Ratio:            : 0.6416954310670567      
+  VRW                      : 7.074270554994495       
+  SQN                      : 0.5872830666646216      
+
+
+最大回撤: 15.16%
+最大回撤持续时间: 137 天
+Stock: 安博通
+初始资金: 100000
+总资金: 135998.98
+净收益: 35998.98
+Backtesting Results
+  Open Positions           : -                       
+  Closed Trades            : 2                       
+  Winning Trades           : 2                       
+  Loosing Trades           : -                       
+
+
+  Longest Winning Streak   : 2                       
+  Longest Loosing Streak   : -                       
+  Strike Rate (Win/closed) : 100.0                   
+
+
+  Net P/L                  : $35998.98               
+  P/L Average per trade    : $17999.49               
+
+
+  Drawdown                 : $0.0                    
+  Sharpe Ratio:            : 1.1265467535373441      
+  VRW                      : 12.070421059625085      
+  SQN                      : 2.697552394170321       
+
+
+最大回撤: 3.54%
+最大回撤持续时间: 73 天
+Stock: 腾景科技
+初始资金: 100000
+总资金: 140610.77
+净收益: 40610.77
+Backtesting Results
+  Open Positions           : 1                       
+  Closed Trades            : 5                       
+  Winning Trades           : 2                       
+  Loosing Trades           : 3                       
+
+
+  Longest Winning Streak   : 1                       
+  Longest Loosing Streak   : 2                       
+  Strike Rate (Win/closed) : 40.0                    
+
+
+  Net P/L                  : $47820.61               
+  P/L Average per trade    : $9564.12                
+
+
+  Drawdown                 : $18.33140681273842      
+  Sharpe Ratio:            : 1.0409647693483297      
+  VRW                      : 13.703990478403119      
+  SQN                      : 0.8720350616302346      
+
+
+最大回撤: 18.33%
+最大回撤持续时间: 71 天
+Stock: 雷科防务
+初始资金: 100000
+总资金: 98895.08
+净收益: -1104.92
+Backtesting Results
+  Open Positions           : 1                       
+  Closed Trades            : 5                       
+  Winning Trades           : 3                       
+  Loosing Trades           : 2                       
+
+
+  Longest Winning Streak   : 3                       
+  Longest Loosing Streak   : 2                       
+  Strike Rate (Win/closed) : 60.0                    
+
+
+  Net P/L                  : $428.89                 
+  P/L Average per trade    : $85.78                  
+
+
+  Drawdown                 : $3.4279463718798273     
+  Sharpe Ratio:            : -0.13414451868238797    
+  VRW                      : -0.5309987558739486     
+  SQN                      : 0.025918383489104174    
+
+
+最大回撤: 16.65%
+最大回撤持续时间: 123 天
+Stock: 路畅科技
+初始资金: 100000
+总资金: 88455.27
+净收益: -11544.73
+Backtesting Results
+  Open Positions           : -                       
+  Closed Trades            : 3                       
+  Winning Trades           : -                       
+  Loosing Trades           : 3                       
+
+
+  Longest Winning Streak   : -                       
+  Longest Loosing Streak   : 3                       
+  Strike Rate (Win/closed) : -                       
+
+
+  Net P/L                  : $-11544.73              
+  P/L Average per trade    : $-3848.24               
+
+
+  Drawdown                 : $14.47297970525839      
+  Sharpe Ratio:            : -0.8592483597856866     
+  VRW                      : -4.684962424486186      
+  SQN                      : -4.496449873415383      
+
+
+最大回撤: 16.19%
+最大回撤持续时间: 139 天
+Stock: 汉威科技
+初始资金: 100000
+总资金: 146198.6
+净收益: 46198.6
+Backtesting Results
+  Open Positions           : -                       
+  Closed Trades            : 2                       
+  Winning Trades           : 2                       
+  Loosing Trades           : -                       
+
+
+  Longest Winning Streak   : 2                       
+  Longest Loosing Streak   : -                       
+  Strike Rate (Win/closed) : 100.0                   
+
+
+  Net P/L                  : $46198.6                
+  P/L Average per trade    : $23099.3                
+
+
+  Drawdown                 : $4.133301145870175      
+  Sharpe Ratio:            : 1.165709664945609       
+  VRW                      : 14.733374212361847      
+  SQN                      : 1.9654907032301208      
+
+
+最大回撤: 7.01%
+最大回撤持续时间: 68 天
+Stock: 新易盛
+初始资金: 100000
+总资金: 117998.21
+净收益: 17998.21
+Backtesting Results
+  Open Positions           : 1                       
+  Closed Trades            : 2                       
+  Winning Trades           : 2                       
+  Loosing Trades           : -                       
+
+
+  Longest Winning Streak   : 2                       
+  Longest Loosing Streak   : -                       
+  Strike Rate (Win/closed) : 100.0                   
+
+
+  Net P/L                  : $12432.64               
+  P/L Average per trade    : $6216.32                
+
+
+  Drawdown                 : $1.4038660035522248     
+  Sharpe Ratio:            : 1.2506322119549507      
+  VRW                      : 6.8652839615666865      
+  SQN                      : 4.329330738399256       
+
+
+最大回撤: 3.59%
+最大回撤持续时间: 13 天
+Stock: 东方钽业
+初始资金: 100000
+总资金: 107926.79
+净收益: 7926.79
+Backtesting Results
+  Open Positions           : -                       
+  Closed Trades            : 3                       
+  Winning Trades           : 2                       
+  Loosing Trades           : 1                       
+
+
+  Longest Winning Streak   : 1                       
+  Longest Loosing Streak   : 1                       
+  Strike Rate (Win/closed) : 66.66666666666666       
+
+
+  Net P/L                  : $7926.79                
+  P/L Average per trade    : $2642.26                
+
+
+  Drawdown                 : $0.4146382143388227     
+  Sharpe Ratio:            : 0.5027783025410234      
+  VRW                      : 3.4146926576549625      
+  SQN                      : 0.8708014206229366      
+
+
+最大回撤: 5.51%
+最大回撤持续时间: 138 天
+Stock: 三花智控
+初始资金: 100000
+总资金: 129891.05
+净收益: 29891.05
+Backtesting Results
+  Open Positions           : 1                       
+  Closed Trades            : 3                       
+  Winning Trades           : 2                       
+  Loosing Trades           : 1                       
+
+
+  Longest Winning Streak   : 1                       
+  Longest Loosing Streak   : 1                       
+  Strike Rate (Win/closed) : 66.66666666666666       
+
+
+  Net P/L                  : $33002.47               
+  P/L Average per trade    : $11000.82               
+
+
+  Drawdown                 : $7.204791650711198      
+  Sharpe Ratio:            : 1.0968261908484636      
+  VRW                      : 10.379615766352545      
+  SQN                      : 1.079745388766425       
+
+
+最大回撤: 9.39%
+最大回撤持续时间: 83 天
+Stock: 帝科股份
+初始资金: 100000
+总资金: 117625.59
+净收益: 17625.59
+Backtesting Results
+  Open Positions           : 1                       
+  Closed Trades            : 2                       
+  Winning Trades           : 2                       
+  Loosing Trades           : -                       
+
+
+  Longest Winning Streak   : 2                       
+  Longest Loosing Streak   : -                       
+  Strike Rate (Win/closed) : 100.0                   
+
+
+  Net P/L                  : $18438.17               
+  P/L Average per trade    : $9219.08                
+
+
+  Drawdown                 : $4.116933660033719      
+  Sharpe Ratio:            : 0.6547719511340058      
+  VRW                      : 6.718898731529327       
+  SQN                      : 7.408625380719664       
+
+
+最大回撤: 6.58%
+最大回撤持续时间: 71 天
+Stock: 大唐电信
+初始资金: 100000
+总资金: 211134.5
+净收益: 111134.5
+Backtesting Results
+  Open Positions           : -                       
+  Closed Trades            : 4                       
+  Winning Trades           : 4                       
+  Loosing Trades           : -                       
+
+
+  Longest Winning Streak   : 4                       
+  Longest Loosing Streak   : -                       
+  Strike Rate (Win/closed) : 100.0                   
+
+
+  Net P/L                  : $111134.5               
+  P/L Average per trade    : $27783.62               
+
+
+  Drawdown                 : $2.7387675819176636     
+  Sharpe Ratio:            : 2.410745997590237       
+  VRW                      : 29.302806473250644      
+  SQN                      : 4.262755355448986       
+
+
+最大回撤: 5.86%
+最大回撤持续时间: 57 天
