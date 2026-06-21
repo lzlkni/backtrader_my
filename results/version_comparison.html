@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>版本对比</title>
+<style>
+body { font-family: -apple-system, 'Microsoft YaHei', sans-serif; max-width: 1000px; margin: 20px auto; padding: 0 20px; background: #f5f5f5; color: #333; }
+h1 { color: #1a1a2e; border-bottom: 3px solid #e94560; padding-bottom: 10px; }
+h2 { color: #16213e; margin-top: 30px; }
+table { border-collapse: collapse; width: 100%; margin: 16px 0; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.1); }
+th, td { padding: 10px 14px; text-align: center; border-bottom: 1px solid #eee; }
+th { background: #1a1a2e; color: #fff; font-weight: 600; }
+tr:nth-child(even) { background: #f8f8f8; }
+tr:hover { background: #e8f4f8; }
+tr.recommended { background: #fffde7; border-left: 4px solid #fbc02d; }
+.best { display: inline-block; background: #2ecc71; color: #fff; font-size: 11px; padding: 1px 6px; border-radius: 3px; margin-left: 4px; }
+.highlight-box { background: #fff; border-left: 4px solid #3498db; padding: 12px 16px; margin: 16px 0; box-shadow: 0 1px 3px rgba(0,0,0,.1); }
+code { background: #eee; padding: 2px 6px; border-radius: 3px; font-size: 13px; }
+.tag { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 3px; margin: 2px; }
+.tag-new { background: #2ecc71; color: #fff; }
+.tag-up { background: #3498db; color: #fff; }
+.tag-fix { background: #e67e22; color: #fff; }
+.tag-exp { background: #9b59b6; color: #fff; }
+.positive { color: #e74c3c; }
+.negative { color: #27ae60; }
+</style>
+</head>
+<body>
+
+<h1>版本对比</h1>
+<p>测试股票池：Deepseek 117 只（12 板块）| 回测期间：2024-01-01 ~ 2025-06-10 | 初始资金：100,000/股</p>
+
+<h2>回测结果</h2>
+
+<table>
+<thead>
+<tr>
+  <th>版本</th>
+  <th>核心改进</th>
+  <th>平均收益</th>
+  <th>胜率</th>
+  <th>夏普</th>
+  <th>文件</th>
+</tr>
+</thead>
+<tbody>
+<tr class="recommended">
+  <td><strong>v5</strong> <span class="best">推荐</span></td>
+  <td>分批止盈 8%/30%</td>
+  <td class="positive">+42.22%</td>
+  <td>81%</td>
+  <td>1.03</td>
+  <td><code>versions/fast_macd3.4_v5.py</code></td>
+</tr>
+<tr>
+  <td><strong>v6</strong></td>
+  <td>v5 + ATR止损 (3×ATR)</td>
+  <td class="positive">+27.06%</td>
+  <td>78%</td>
+  <td>0.83</td>
+  <td><code>versions/fast_macd3.4_v6.py</code></td>
+</tr>
+<tr>
+  <td><strong>v7</strong></td>
+  <td>v5 + 硬性止损 -15%</td>
+  <td>—</td>
+  <td>—</td>
+  <td>—</td>
+  <td><code>versions/fast_macd3.4_v7.py</code></td>
+</tr>
+<tr>
+  <td><strong>v8</strong></td>
+  <td>v5 + ATR移动止损 3.5×ATR</td>
+  <td class="positive">+32.78%</td>
+  <td>75%</td>
+  <td>0.72</td>
+  <td><code>versions/fast_macd3.4_v8.py</code></td>
+</tr>
+<tr>
+  <td><strong>v9</strong> <span class="tag tag-exp">实验</span></td>
+  <td>v5 + 分批止盈递减(8/30→15/20→25/20) + 追涨加仓</td>
+  <td class="positive">+10.09%</td>
+  <td>59%</td>
+  <td>—</td>
+  <td><code>versions/fast_macd3.4_v9.py</code></td>
+</tr>
+</tbody>
+</table>
+
+<div class="highlight-box">
+<h3>v5 最优参数</h3>
+<code>upper_mult = 2.5</code> — 止盈宽度<br>
+<code>macd_high_thresh = 0.8</code> — 强趋势阈值<br>
+<code>macd_low_thresh = 0.4</code> — 中趋势阈值<br>
+<code>macd_high_factor = 0.3</code> — 强趋势止盈倍数<br>
+<code>macd_low_factor = 0.6</code> — 中趋势止盈倍数<br>
+<code>profit_threshold = 8.0</code> — 分批止盈阈值<br>
+<code>sell_pct = 30.0</code> — 分批止盈比例
+</div>
+
+<h2>更新日志</h2>
+
+<table>
+<thead>
+<tr><th>日期</th><th>版本</th><th>变更</th></tr>
+</thead>
+<tbody>
+<tr><td>2026-06-21</td><td><strong>v9</strong></td><td>新增：分批止盈比例递减(8%/30%→15%/20%→25%/20%) + 追涨加仓</td></tr>
+</tbody>
+</table>
+
+<h2>指标定义</h2>
+<ul>
+  <li><strong>夏普</strong> = 平均收益 / 收益标准差（越高越好）</li>
+  <li><strong>胜率</strong> = 盈利交易数 / 总交易数</li>
+  <li><strong>最大损失</strong> = 单只股票最大回撤</li>
+</ul>
+
+</body>
+</html>

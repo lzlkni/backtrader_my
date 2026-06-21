@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>V5 策略 Deepseek 股票池回测报告</title>
+<style>
+body { font-family: -apple-system, 'Microsoft YaHei', sans-serif; max-width: 900px; margin: 20px auto; padding: 0 20px; background: #f5f5f5; color: #333; }
+h1 { color: #1a1a2e; border-bottom: 3px solid #e94560; padding-bottom: 10px; }
+h2 { color: #16213e; margin-top: 30px; }
+table { border-collapse: collapse; width: 100%; margin: 16px 0; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.1); }
+th, td { padding: 8px 12px; text-align: center; border-bottom: 1px solid #eee; }
+th { background: #1a1a2e; color: #fff; font-weight: 600; }
+tr:nth-child(even) { background: #f8f8f8; }
+tr:hover { background: #e8f4f8; }
+.positive { color: #e74c3c; font-weight: bold; }
+.negative { color: #27ae60; font-weight: bold; }
+.highlight-box { background: #fff; border-left: 4px solid #e94560; padding: 12px 16px; margin: 16px 0; box-shadow: 0 1px 3px rgba(0,0,0,.1); }
+.highlight-box.green { border-left-color: #27ae60; }
+.highlight-box.red { border-left-color: #e74c3c; }
+.stats { display: flex; gap: 16px; margin: 16px 0; }
+.stat-card { background: #fff; padding: 16px; flex: 1; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,.1); }
+.stat-card .num { font-size: 24px; font-weight: bold; margin: 4px 0; }
+ul { line-height: 1.8; }
+li { margin: 6px 0; }
+</style>
+</head>
+<body>
+
+<h1>V5 策略 Deepseek 股票池回测报告</h1>
+
+<p>回测期间: <strong>2024-01-01 ~ 2025-06-10</strong> &nbsp;|&nbsp; 股票数量: <strong>117</strong> 只（12 个板块）</p>
+
+<h2>板块对比表</h2>
+
+<table>
+<thead>
+<tr><th>板块</th><th>V5 收益</th><th>持有收益</th><th>超额收益</th><th>胜率</th><th>夏普</th><th>回撤</th></tr>
+</thead>
+<tbody>
+<tr><td><strong>机器人</strong></td><td class="positive">+31.88%</td><td class="positive">+37.74%</td><td class="negative">-5.86%</td><td>100%</td><td>+0.89</td><td>16.98%</td></tr>
+<tr><td><strong>锂电池</strong></td><td class="positive">+29.65%</td><td class="negative">-20.04%</td><td class="positive" style="background:#e8f5e9">+49.69%</td><td>89%</td><td>+0.73</td><td>17.61%</td></tr>
+<tr><td><strong>充电桩</strong></td><td class="positive">+23.60%</td><td class="positive">+9.52%</td><td class="positive">+14.08%</td><td>90%</td><td>+0.49</td><td>13.66%</td></tr>
+<tr><td><strong>新能源车</strong></td><td class="positive">+22.50%</td><td class="positive">+15.42%</td><td class="positive">+7.08%</td><td>100%</td><td>+0.81</td><td>13.69%</td></tr>
+<tr><td><strong>创新药</strong></td><td class="positive">+13.35%</td><td class="positive">+5.03%</td><td class="positive">+8.32%</td><td>60%</td><td>+0.23</td><td>19.40%</td></tr>
+<tr><td><strong>半导体</strong></td><td class="positive">+12.28%</td><td class="positive">+13.14%</td><td class="negative">-0.86%</td><td>80%</td><td>+0.30</td><td>14.49%</td></tr>
+<tr><td><strong>光伏</strong></td><td class="positive">+9.60%</td><td class="negative">-30.66%</td><td class="positive" style="background:#e8f5e9">+40.26%</td><td>70%</td><td>+0.15</td><td>22.09%</td></tr>
+<tr><td><strong>储能</strong></td><td class="positive">+8.83%</td><td class="positive">+0.77%</td><td class="positive">+8.06%</td><td>100%</td><td>+0.18</td><td>23.95%</td></tr>
+<tr><td><strong>人工智能</strong></td><td class="positive">+8.56%</td><td class="positive">+38.15%</td><td class="negative" style="background:#fbe9e7">-29.59%</td><td>90%</td><td>+0.28</td><td>19.44%</td></tr>
+<tr><td><strong>数字经济</strong></td><td class="positive">+4.98%</td><td class="positive">+12.30%</td><td class="negative">-7.32%</td><td>50%</td><td>-0.28</td><td>17.20%</td></tr>
+<tr><td><strong>军工</strong></td><td class="positive">+3.73%</td><td class="positive">+8.67%</td><td class="negative">-4.94%</td><td>60%</td><td>-0.01</td><td>12.76%</td></tr>
+<tr><td><strong>消费电子</strong></td><td class="positive">+1.86%</td><td class="positive">+7.47%</td><td class="negative">-5.61%</td><td>40%</td><td>-0.25</td><td>15.29%</td></tr>
+</tbody>
+</table>
+
+<h2>总体</h2>
+
+<div class="stats">
+<div class="stat-card"><div>V5 平均收益</div><div class="num" style="color:#e74c3c">+14.19%</div></div>
+<div class="stat-card"><div>持有平均收益</div><div class="num" style="color:#27ae60">+8.49%</div></div>
+<div class="stat-card"><div>超额收益</div><div class="num" style="color:#e67e22">+5.70%</div></div>
+<div class="stat-card"><div>总胜率</div><div class="num">63.2%</div></div>
+</div>
+
+<h2>关键发现</h2>
+
+<div class="highlight-box green">
+<h3>V5 策略最大价值：下行保护</h3>
+<ul>
+<li><strong>光伏板块</strong>：持有亏 30.66%，V5 赚 9.60%（<strong>超额 +40pct</strong>）</li>
+<li><strong>锂电池板块</strong>：持有亏 20.04%，V5 赚 29.65%（<strong>超额 +50pct</strong>）</li>
+</ul>
+<p>V5 的止损机制在板块深度下跌时有效保护了本金，将大幅亏损扭转为正收益。</p>
+</div>
+
+<div class="highlight-box red">
+<h3>V5 策略最大短板：过早止盈</h3>
+<ul>
+<li><strong>人工智能板块</strong>：持有赚 38.15%，V5 只赚 8.56%（<strong>跑输 30pct</strong>）</li>
+<li><strong>机器人板块</strong>：持有赚 37.74%，V5 赚 31.88%（差距 6pct）</li>
+</ul>
+<p>分批止盈机制在暴涨行情中过早离场，吃不到后半段主升浪。</p>
+</div>
+
+<div class="highlight-box">
+<h3>适配性总结</h3>
+<p><strong>最佳适配：</strong> 充电桩（+14% 超额）、新能源车（+7% 超额）、创新药（+8% 超额）</p>
+<p><strong>最不适配：</strong> 人工智能（-30% 超额）、数字经济（-7% 超额）、消费电子（-6% 超额）</p>
+<p>V5 本质是<strong>带止损的趋势跟踪系统</strong>，在下跌市大幅跑赢持有，在暴涨市跑输持有。适合震荡市和温和上涨市，不适合超级牛市。</p>
+</div>
+
+</body>
+</html>

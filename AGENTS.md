@@ -40,36 +40,7 @@ AI 系列 (服务器运行)
   输出 → sweep_v*_results.csv
 ```
 
-## 基准结果
-
-### 推荐版本
-
-| 版本 | 文件 | 核心改进 | 平均收益 | 胜率 | 夏普 |
-|------|------|----------|----------|------|------|
-| **v5** | `fast_macd3.4_v5.py` | 五参数 + 分批止盈 8%/30% | **+42.22%** | 81% | **1.03** |
-| v2 | `fast_macd3.4_v2.py` | 最优五参数 (2.5/0.8/0.4/0.3/0.6) | +43.56% | 75% | 0.96 |
-| v6 | `fast_macd3.4_v6.py` | v5 + ATR止损 (3×ATR) | +27.06% | 78% | 0.83 |
-| 原始 | `fast_macd3.4.py` | 原始版本 (1.5/0.6/0.3) | +30.16% | 78% | 1.03 |
-
-### v5 最优参数
-
-```python
-upper_mult = 2.5          # 止盈宽度
-macd_high_thresh = 0.8    # 强趋势阈值
-macd_low_thresh = 0.4     # 中趋势阈值
-macd_high_factor = 0.3    # 强趋势止盈倍数
-macd_low_factor = 0.6     # 中趋势止盈倍数
-profit_threshold = 8.0    # 分批止盈阈值
-sell_pct = 30.0           # 分批止盈比例
-```
-
-### 指标定义
-
-- **夏普** = 平均收益 / 收益标准差（越高越好）
-- **胜率** = 盈利交易数 / 总交易数
-- **最大损失** = 单只股票最大回撤
-
-详见 `ai3_vs_ai2_comparison.md` 和各 `sweep_v*_results.csv`。
+详见 `ai3_vs_ai2_comparison.md`、`results/version_comparison.html` 和各 `sweep_v*_results.csv`。
 
 ## 关键文件
 
@@ -164,6 +135,48 @@ testing/                   — 实验脚本 (非测试)
 data/                      — 股票 CSV 缓存数据
 learn_backtrader-master/   — 教程参考代码
 ```
+
+## 报告输出规范
+
+所有回测结果报告必须以 **HTML 格式** 输出，并遵循以下可读性要求：
+
+### 格式要求
+
+1. **表格化数据**：指标对比、参数列表、交易记录等结构化数据必须使用 HTML `<table>` 展示
+2. **语义化标签**：使用 `<h1>`~`<h3>` 标题层级、`<ul>`/`<ol>` 列表、`<strong>` 高亮关键数值
+3. **颜色编码**：
+   - 正收益 / 胜率 ≥ 70%：绿色 (`#2ecc71`)
+   - 负收益 / 胜率 < 50%：红色 (`#e74c3c`)
+   - 中性信息：灰色 (`#7f8c8d`)
+4. **响应式布局**：在终端预览或浏览器中均可读，表格不溢出
+5. **内联样式**：不依赖外部 CSS，使用 `style=""` 属性直接定义
+
+### 输出模板
+
+```html
+<div style="font-family: 'Microsoft YaHei', sans-serif; max-width: 800px; margin: 0 auto;">
+  <h2 style="color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 8px;">📊 回测报告：{股票名称} ({代码})</h2>
+
+  <table style="width: 100%; border-collapse: collapse; margin: 16px 0;">
+    <tr style="background: #3498db; color: white;">
+      <th style="padding: 10px; text-align: left;">指标</th>
+      <th style="padding: 10px; text-align: right;">数值</th>
+    </tr>
+    <tr style="background: #f8f9fa;">
+      <td style="padding: 8px;">总收益</td>
+      <td style="padding: 8px; text-align: right; color: {color}; font-weight: bold;">{value}</td>
+    </tr>
+    <!-- ... -->
+  </table>
+</div>
+```
+
+### 适用场景
+
+- 单股回测结果（`fast_macd3.4_one.py`）
+- 批量回测汇总（`fast_macd3.4_all_stock.py`）
+- 版本对比报告（`version_comparison.md` 的 HTML 版）
+- 参数扫描结果（`sweep_v*_results.csv` 的可视化）
 
 ## 关键注意事项
 
