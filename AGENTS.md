@@ -28,6 +28,10 @@ AI 系列 (服务器运行)
   ai2: ATR动态止损 + ADX趋势过滤 + 自适应MACD参数
   ai3: ai2 + ADX动态ATR倍数
 
+画像分析
+  v5_stock_profiler.py → v5_profile_full.csv (117只股票, 17维特征关联)
+
+
 单改进实验 (独立文件)
   3.4_so.py     — 分批止盈 (10%卖50%)
   3.4_rr.py     — 风险收益比 >1.2 过滤
@@ -52,6 +56,11 @@ AI 系列 (服务器运行)
 - **`fast_macd3.4_hk.py`** — 港股版本
 - **`fast_macd3.4_sweep*.py`** — 参数暴力扫描（sweep），输出 CSV
 - **`instruction.txt`** — AI 开发指令 backlog，记录每个版本的需求来源
+
+## 画像分析工具
+
+- **`v5_stock_profiler.py`** — v5 股票画像: 批量下载数据 → 计算17维特征 → 跑v5回测 → 增量保存到CSV
+- **`results/v5_profile_full.csv`** — 117只股票, 12行业, v5收益+特征关联数据
 
 ## 开发流程
 
