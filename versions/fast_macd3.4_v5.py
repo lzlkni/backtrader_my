@@ -389,7 +389,7 @@ def main():
         # stock_hfq_df = ak.stock_zh_a_hist(symbol=stock_code, adjust="qfq", start_date=start_date, end_date=end_date).iloc[:, :6]  # 利用 AkShare 一行获取复权数据
         
         try:
-            stock_hfq_df = ak.stock_zh_a_daily(symbol=stock_code, adjust="qfq", start_date=start_date, end_date=end_date).iloc[:, :6]
+            stock_hfq_df = ak.stock_zh_a_daily(symbol=stock_code, adjust="qfq", start_date=start_date, end_date=end_date).iloc[:, :6].copy()
         except Exception as e:
             print(f"{stock_code} {stock_name} 数据获取失败: {e}")
             continue
@@ -437,7 +437,11 @@ def main():
         cerebro.addanalyzer(bt.analyzers.AnnualReturn, _name='annual_return')
         cerebro.addanalyzer(bt.analyzers.TimeReturn, _name='time_return')
 
-        result = cerebro.run()
+        try:
+            result = cerebro.run()
+        except Exception as e:
+            print(f"{stock_code} {stock_name} backtrader运行失败: {e}")
+            continue
         port_value = cerebro.broker.getvalue()
         pnl = port_value - start_cash
 
