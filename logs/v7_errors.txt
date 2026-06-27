@@ -1,2 +1,0 @@
-D:\Users\lzl_k\anaconda3\envs\backtrader\lib\site-packages\akshare\__init__.py:3075: UserWarning: 为了支持更多特性，请将 Python 升级到 3.9.0 及以上版本！
-  warnings.warn(
