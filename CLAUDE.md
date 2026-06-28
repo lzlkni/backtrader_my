@@ -1,76 +1,83 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+本文件为 Claude Code 提供仓库操作指引。
 
-## Working Rules
+## 工作规则
 
-- **Plan before acting.** For any non-trivial change, explore the relevant code, lay out a plan covering what needs to change and why, and wait for user approval before writing code. Do not jump straight to implementation.
-- **Plans must be saved.** Every plan is written to `C:\Users\lzl_k\.claude\plans\<name>.md` before any code changes. When a task is finished, update the plan file to mark it complete (change `[ ]` → `[x]` or add a `## ✅ Completed` section). Plans are the permanent record of what was done.
-- **Algo changes require a full test run.** Every time a strategy algorithm is modified (indicators, stop-loss, take-profit, filters, parameter logic, etc.), you must run the default stock list end-to-end and record the results. This ensures no regression and provides a baseline for comparison.
-- **Compare against all prior versions.** Each new algo version must be tested against all previous versions in the chain: `fast_macd3.4_ai.py` → `fast_macd3.4_ai2.py` → `fast_macd3.4_ai3.py` → ... → latest. Use the same default stock list and date range for a fair comparison. Record results in `ai3_vs_ai2_comparison.md` (or similar). This shows whether each iteration actually improves performance.
+- **先计划后动手。** 任何非平凡修改，先探索相关代码、制定计划并等待用户批准，再写代码。
+- **计划必须保存。** 每次计划写入 `C:\Users\lzl_k\.claude\plans\<name>.md`，完成后标记完成。计划是变更的永久记录。
+- **策略改动必须完整回测。** 每次修改指标、止盈止损、过滤器、参数逻辑后，用默认股票列表跑完整一轮回测并记录结果。
+- **对比历史版本。** 新版本必须与之前所有版本对比，用相同股票列表和日期范围。结果记录到 `results/version_comparison.html` 或其他对比文件。
 
-## Project Overview
+## 项目简介
 
-Personal stock backtesting project for Chinese A-shares (and some HK). Flat directory, no packaging, no CI, no formal test suite. Scripts are run directly with `python`. Comments and log messages are in Chinese (Mandarin).
+个人 A 股（少量港股）回测项目。使用 `backtrader` + `akshare`。子目录结构：strategies/versions/variants/scripts/common。无测试框架、无 CI。每个策略文件自包含（指标类内联复制）。注释和日志均为中文。
 
-## Python Environment
+## Python 环境
 
-Conda env `backtrader`:
+Conda env `backtrader`：
 ```
 D:\Users\lzl_k\anaconda3\envs\backtrader\python.exe
 ```
-Override with env var `BACKTEST_PYTHON`.
+覆盖：`BACKTEST_PYTHON` 环境变量。
+注意 `scripts/` 目录的脚本在文件顶部通过 `PYTHON_EXE` 使用不同的 Python 路径（`Python312\venvs\backtrader\`）。
 
-## Common Commands
-./
+## 常用命令
+
 ```bash
-# Single stock with custom date range
-python fast_macd3.4.py --start_date 20240101 --end_date 20250101
+# 单股自定义日期
+python strategies/fast_macd3.4.py --start_date 20240101 --end_date 20250101
 
-# Batch from file
-python fast_macd3.4_all_stock.py -f stocks.csv -s 20240101
+# 从股票列表批量运行
+python variants/fast_macd3.4_all_stock.py -f Input_stock_list/deepseek_csv_20260621_3c2bb1.txt -s 20240101
 
-# Start the backtest server (spawns fast_macd3.4_ai.py as subprocess)
-python backtest_server.py
-# GET http://localhost:18765/run?start_date=20220101
+# AI 变体（JSON 标准输出）
+python variants/fast_macd3.4_ai.py --start_date 20220101
 
-# AI-variant strategy (outputs JSON to stdout)
-python fast_macd3.4_ai.py --start_date 20220101
+# 单股快速回测
+python variants/fast_macd3.4_one.py
 
-# Single stock runner
-python fast_macd3.4_one.py
+# V5 全市场选股（见脚本顶部的 PYTHON_EXE 路径）
+python scripts/screen_stocks_for_v5.py --top 200 -s 20240101 -e 20250610
+
+# 105 维因子选股
+python scripts/screen_stocks_105factors.py
+
+# 每日热门概念板块龙头股
+python scripts/daily_hot_stocks.py
 ```
 
-Stock file format: `code,name` per line (e.g. `sz300568,星源材质`). UTF-8 with BOM is handled.
+股票文件格式：`code,name` 每行（如 `sz300568,星源材质`）。自动处理 UTF-8 with BOM。
 
-## Architecture
+## 架构
 
-### Strategy Pattern
+### 策略模式
 
-All strategies follow the same structure — custom `bt.Indicator` subclasses composed into a `bt.Strategy`:
+所有策略遵循相同结构 — 自定义 `bt.Indicator` 子类组合成 `bt.Strategy`：
 
-- **`FastMACD`** — Double-smoothed MACD (EMA-of-EMA fast/slow, double-smoothed signal). Adds `macd_highest` line (120-period Highest) used for threshold comparison.
-- **`InOutLine`** — Tracks `lowest` (12-period Lowest of close) and `upper` (lowest × 1.5). Used for dynamic stop-loss / take-profit calculation.
-- **`UpCrossSignal`** — Wraps `bt.indicators.CrossOver(FastMACD.macd, FastMACD.signal)`. Outputs +1 on bullish cross (buy signal).
-- **`fast_macd_strtgy`** — Main strategy: buys on bullish MACD cross when signal > 0; sells when close hits upper (profit target) or lower (stop-loss) band. Stop/target are dynamic — recalculated at buy time using `calculate_stop_loss_target()`, which scales the band width by `std_scale = (price - lowest) * 1.5` and selects multiplier based on where current MACD sits relative to its 120-day high.
+- **`FastMACD`** — 双平滑 MACD（EMA of EMA 快/慢线，双平滑信号线）。增加 `macd_highest` 线（120 周期最高值）用于阈值比较。
+- **`InOutLine`** — 追踪 `lowest`（12 周期最低价）和 `upper`（lowest × 1.5）。用于动态止损/止盈。
+- **`UpCrossSignal`** — 包装 `bt.indicators.CrossOver(FastMACD.macd, FastMACD.signal)`。金叉输出 +1（买入信号）。
+- **`fast_macd_strtgy`** — 主力策略：MACD 金叉且 signal > 0 时买入；收盘价触 upper（止盈）或 lower（止损）时卖出。止损/止盈在买入时用 `calculate_stop_loss_target()` 动态计算。
 
-Strategy files share a common layout: indicator classes → strategy class with `next()`/`notify_order()`/`notify_trade()` → `load_stocks_from_file()` → `main()` argparse entrypoint.
+策略文件通用布局：指标类 → 策略类（`next()`/`notify_order()`/`notify_trade()`）→ `load_stocks_from_file()` → `main()` argparse 入口。
 
-### Strategy Variants
+### 策略变体
 
-- **`fast_macd_base.py`** — Earliest version (pre-3.x naming). Uses global `stock`/`stock_name` variables. Imported by early scripts.
-- **`fast_macd3.4.py`** — Authoritative main strategy. Passes `stock_code`/`stock_name` as strategy params (not globals). Includes `calculate_stop_loss_target()` method.
-- **`fast_macd3.4_ai.py`** — AI-variant. Adds hot-concept board scraping via EastMoney HTTP API (avoids akshare SSL issues). Outputs JSON to stdout — designed for programmatic consumption.
-- **`fast_macd3.4_all_stock.py`** — Batch runner. Loads stocks from CSV, iterates with 10s sleep between each (rate-limit for akshare).
-- **`fast_macd3.4_one.py`** — Single-stock runner.
-- **`fast_macd3.4_hk.py`** — HK market variant.
-- **`fast_macd3.5.py`** — Newest version (work in progress).
+- **`fast_macd_base.py`** — 最早版本（pre-3.x 命名，使用全局变量）
+- **`fast_macd3.4.py`** — 权威版本（`strategies/` 目录）
+- **`fast_macd3.4_ai.py`** — AI 变体（热门板块、JSON 标准输出、懒导入）
+- **`fast_macd3.4_all_stock.py`** — 批量回测器（每只股票间隔 10s，akshare 限速）
+- **`fast_macd3.4_one.py`** — 单股快速回测
+- **`fast_macd3.4_hk.py`** — 港股版本
+- **`fast_macd3.5.py`** — 最新主线版本（WIP）
+- **`fast_macd3.4_v5.py`** — **推荐版本**（`versions/` 目录）
 
-All variants copy the indicator classes inline — each file is self-contained, not imported from a shared module.
+所有变体内联复制指标类 — 每个文件自包含，不从共享模块导入。
 
-### Analyzer Setup
+### 分析器设置
 
-Standard analyzer stack added in `main()`:
+`main()` 中的标准分析器栈：
 ```python
 cerebro.addanalyzer(bt.analyzers.TradeAnalyzer, _name='ta')
 cerebro.addanalyzer(bt.analyzers.DrawDown, _name='drawdown')
@@ -83,45 +90,52 @@ cerebro.addanalyzer(bt.analyzers.AnnualReturn, _name='annual_return')
 cerebro.addanalyzer(bt.analyzers.TimeReturn, _name='time_return')
 ```
 
-Results are printed via `PrintAnalyzer.printTradeAnalysis()` (imported with `from PrintAnalyzer import *`).
+结果通过 `PrintAnalyzer.printTradeAnalysis()` 输出（`from PrintAnalyzer import *` 导入）。
 
-### Data Flow
+### 数据流
 
 ```
-akshare.stock_zh_a_daily(symbol=code, adjust="qfq")  →  pandas DataFrame (6 cols: date/open/high/low/close/volume)
+akshare.stock_zh_a_daily(symbol=code, adjust="qfq")  →  pandas DataFrame
     → bt.feeds.PandasData
     → bt.Cerebro.adddata + addstrategy
     → cerebro.run()
     → analyzers → printTradeAnalysis()
 ```
 
-## Key Gotchas
+## 关键注意事项
 
-- **No linter, formatter, or typecheck.** No pre-commit hooks.
-- **`time.sleep(10)`** in batch loops — intentional rate-limiting for akshare API calls. Don't remove.
-- **`send_email.py`** contains a hardcoded SMTP password (`ylnclfzmrzjpbbbi`). Do not commit additional secrets.
-- **`openclaw.json`** (if present) has API keys for Moonshot, ModelScope, Google, LongCat. Do not expose.
-- Stock data is fetched live from akshare — scripts fail without internet. CSV files in root are cached stock lists, not strategy inputs.
-- Strategy versions (3.1→3.5) are separate files, not branches. Changes to `fast_macd3.4.py` are the live version.
-- **v5 (`fast_macd3.4_v5.py`) is the recommended version**: `upper_mult=2.5, macd_high_thresh=0.8, macd_low_thresh=0.4, macd_high_factor=0.3, macd_low_factor=0.6, profit_threshold=8.0, sell_pct=30.0`. Avg +42.22%, win rate 81%, Sharpe 1.03.
-- `PrintAnalyzer.py` is imported via `from PrintAnalyzer import *` in strategy files.
-- Stock codes use akshare prefix format: `sz300568`, `sh600580`. The `load_stocks_from_file()` function expects this format.
-- `InOutLine.upper` calculation differs between files: `fast_macd_base.py` and `fast_macd3.4_all_stock.py` use `lowest * 1.5`; `fast_macd3.4.py` uses `bt.ind.Highest(period=12)`. This is intentional divergence between versions.
-- `fast_macd3.4_ai.py` uses lazy imports (heavy libs imported inside functions) for faster startup when called as subprocess.
-- **All strategy files add `common/` to `sys.path`** at the top via `sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), 'common'))`. This is how they find `send_email` and `PrintAnalyzer` after the directory reorganization. If you add a new helper to `common/`, no import changes are needed in strategy files — but if you add a new strategy file, you must include this `sys.path` insertion.
+- **无 linter / formatter / typecheck。** 无 pre-commit hooks。
+- **`time.sleep(10)`** 在 `variants/fast_macd3.4_all_stock.py` 中 — akshare 故意限速，切勿删除或改短。
+- **`send_email.py`** 包含硬编码 SMTP 密码 `ylnclfzmrzjpbbbi`。切勿提交额外密钥。
+- **`openclaw.json`**（如存在）包含 Moonshot / ModelScope / Google / LongCat API 密钥。切勿暴露。
+- 所有股票数据实时从 akshare 获取 — 无网络则失败。`data/` 和 `Input_stock_list/` 中的 CSV 是缓存/限定文件，非策略输入。
+- 策略版本（3.1→3.5）是独立的 `.py` 文件（在 `strategies/` 目录），不是 git 分支。
+- **v5（`versions/fast_macd3.4_v5.py`）是推荐版本**：参数 `upper_mult=2.5, macd_high_thresh=0.8, macd_low_thresh=0.4, macd_high_factor=0.3, macd_low_factor=0.6, profit_threshold=8.0, sell_pct=30.0`。平均收益 +42.22%，胜率 81%，Sharpe 1.03。
+- `PrintAnalyzer.py` 通过 `from PrintAnalyzer import *` 导入。
+- 股票代码格式：`sz300568`、`sh600580`（akshare 前缀格式）。
+- `InOutLine.upper` 计算在不同文件中不同：`fast_macd_base.py` 和 `fast_macd3.4_all_stock.py` 使用 `lowest * 1.5`；`fast_macd3.4.py` 使用 `bt.ind.Highest(period=12)`。这是版本间的有意差异。
+- `fast_macd3.4_ai.py` 使用懒导入（重型库在函数内 import），加快作为子进程的启动速度。
+- **所有策略文件顶部都要添加 `common/` 到 `sys.path`**。子目录文件用 `os.path.join(..., '..', 'common')`；根目录文件用 `os.path.join(..., 'common')`。新增策略文件必须包含此代码。
+- **`scripts/` 使用不同的 Python 路径**：文件顶部通过 `PYTHON_EXE` 常量指定 `Python312\venvs\backtrader\python.exe`。conda 环境和此 venv 均可工作。
 
-## Directory Map
+## 目录结构
 
 ```
-fast_macd3.*.py           — Strategy versions (3.1–3.5, variants)
-backtest_server.py        — HTTP API server
-common/                   — Shared utilities imported by strategy files
-  ├── send_email.py           — Email notification helper (SMTP)
-  ├── PrintAnalyzer.py        — Trade analysis output formatting
-  ├── helpper.py              — akshare concept board scraper
-  ├── stock_list*.py          — Stock list utilities (A-shares, HK, BK)
-  └── eastmoney_boards.py     — EastMoney board scraper
-stock_data_gethoring.py   — Data gathering
-testing/                  — Experimental/scratch scripts (not tests)
-docker_image/             — ARM64 Docker setup for scheduled runs
+strategies/               — 主线策略（base, 3.1–3.5）
+versions/                 — 退出管理迭代（v2–v12, v_exp*, v5_etf）
+variants/                 — AI 变体 + 一次性实验
+scripts/                  — 辅助脚本（选股、报告、每日热门股票）
+common/                   — 共享工具（策略文件通过 sys.path.insert 导入）
+  ├── send_email.py           邮件通知（SMTP）
+  ├── PrintAnalyzer.py        交易分析格式化输出
+  ├── helpper.py              akshare 概念板块爬虫
+  ├── stock_list*.py          股票列表加载器
+  ├── eastmoney_boards.py     EastMoney 板块爬虫
+  ├── hot_stock_fetcher.py    akshare 概念板块 + 资金流获取器
+  └── stock_scorer.py         板块排名 + 龙头选取
+data/                     — 筛选 CSV 和分析辅助脚本
+results/                  — HTML 报告和批量 CSV
+Input_stock_list/         — 股票输入文件
+screening/                — 选股包（占位符）
+docker_image/             — ARM64 Docker 定时运行
 ```
