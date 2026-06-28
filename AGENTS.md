@@ -149,6 +149,11 @@ learn_backtrader-master/   — 教程参考代码
 
 所有回测结果报告必须以 **HTML 格式** 输出，并遵循以下可读性要求：
 
+### 数据存储约定
+
+- `batch_results_*.csv` — 统一保存在 `results/` 目录下（不在项目根目录）
+- 所有策略版本（v_exp*.py 等）的 `df.to_csv()` 输出路径改为 `results/batch_results_{ts}.csv`
+
 ### 格式要求
 
 1. **表格化数据**：指标对比、参数列表、交易记录等结构化数据必须使用 HTML `<table>` 展示

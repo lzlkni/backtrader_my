@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8">
+<style>
+body{font-family:'Microsoft YaHei',sans-serif;max-width:1000px;margin:0 auto;padding:20px;background:#f5f6fa;color:#2c3e50}
+h1{color:#2c3e50;border-bottom:3px solid #3498db;padding-bottom:10px}
+h2{color:#34495e;margin-top:30px}
+table{width:100%;border-collapse:collapse;margin:12px 0;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.08)}
+th{background:#3498db;color:#fff;padding:10px 12px;text-align:left;font-size:13px}
+td{padding:8px 12px;border-bottom:1px solid #eee;font-size:13px}
+tr:hover{background:#f0f7ff}
+.best{background:#d5f5e3}
+.worst{background:#fadbd8}
+.ok{background:#fef9e7}
+.pos{color:#27ae60;font-weight:bold}
+.neg{color:#e74c3c;font-weight:bold}
+.tag{display:inline-block;padding:2px 8px;border-radius:3px;font-size:11px;color:#fff;margin:1px}
+.tag-green{background:#27ae60}
+.tag-yellow{background:#f39c12}
+.tag-red{background:#e74c3c}
+</style></head><body>
+<h1>V5 改进实验对比报告</h1>
+<p style="color:#7f8c8d">生成时间: 2026-06-27 12:10 | 回测: 2024-01-01 ~ 2025-06-10 | 默认36只股票</p>
+<h2>总体统计</h2><table><tr><th>排名</th><th>版本</th><th>改进内容</th><th>平均收益</th><th>胜率</th><th>盈利/总数</th><th>Top1收益</th><th>Bottom1收益</th></tr><tr><td>1</td><td><strong>v_exp2</strong></td><td>+时间止损 20日</td><td class="pos">+42.33%</td><td><span class="tag tag-green">83.3%</span></td><td>30/36</td><td class="pos">+122.17%</td><td class="pos">+88.76%</td></tr><tr><td>2</td><td><strong>v5</strong></td><td>原始版</td><td class="pos">+42.22%</td><td><span class="tag tag-green">80.6%</span></td><td>29/36</td><td class="pos">+143.66%</td><td class="pos">+89.19%</td></tr><tr><td>3</td><td><strong>v_exp9</strong></td><td>+上证指数择时 (P3)</td><td class="pos">+42.22%</td><td><span class="tag tag-green">80.6%</span></td><td>29/36</td><td class="pos">+143.66%</td><td class="pos">+89.19%</td></tr><tr><td>4</td><td><strong>v_exp5</strong></td><td>+风险收益比>1.5过滤</td><td class="pos">+35.61%</td><td><span class="tag tag-green">80.6%</span></td><td>29/36</td><td class="pos">+113.76%</td><td class="pos">+88.76%</td></tr><tr><td>5</td><td><strong>v_exp1</strong></td><td>+ATR追踪止损 3.5x</td><td class="pos">+34.37%</td><td><span class="tag tag-green">75.0%</span></td><td>27/36</td><td class="pos">+97.90%</td><td class="pos">+79.51%</td></tr><tr><td>6</td><td><strong>v_exp6</strong></td><td>+时间止损+RR过滤 (P0)</td><td class="pos">+34.33%</td><td><span class="tag tag-green">83.3%</span></td><td>30/36</td><td class="pos">+113.76%</td><td class="pos">+80.67%</td></tr><tr><td>7</td><td><strong>v_exp3</strong></td><td>+ADX趋势过滤 (ADX>25)</td><td class="pos">+30.44%</td><td><span class="tag tag-green">69.4%</span></td><td>25/36</td><td class="pos">+143.66%</td><td class="pos">+80.05%</td></tr><tr><td>8</td><td><strong>v_exp8</strong></td><td>+ADX动态ATR倍数 (P2)</td><td class="pos">+29.43%</td><td><span class="tag tag-green">83.3%</span></td><td>25/30</td><td class="pos">+94.54%</td><td class="pos">+59.17%</td></tr><tr><td>9</td><td><strong>v_exp4</strong></td><td>+自适应MACD (ATR比率)</td><td class="pos">+9.20%</td><td><span class="tag tag-red">47.2%</span></td><td>17/36</td><td class="pos">+63.56%</td><td class="pos">+33.95%</td></tr></table><h2>各版本详细说明</h2><p><strong>v_exp2</strong>: v5 + 时间止损。持仓超过20天且浮动亏损时强制平仓，避免资金长期占用</p><p><strong>v5</strong>: 原始版本。FastMACD金叉+signal>0入场，InOutLine动态止盈止损 + 分批止盈(8%/30%)</p><p><strong>v_exp9</strong>: v5 + 上证指数择时。仅当上证指数>120日均线时允许买入，熊市不开仓</p><p><strong>v_exp5</strong>: v5 + 风险收益比过滤。calculate_stop_loss_target计算的预期收益/预期止损 < 1.5 时不开仓</p><p><strong>v_exp1</strong>: v5 + ATR移动止损 3.5x。持仓期间记录最高价，止损=最高价-3.5×ATR，随价格上移。同时保留InOutLine作为兜底</p><p><strong>v_exp6</strong>: v5 + 时间止损(20日) + 风险收益比>1.5过滤。组合二者优势，减少无效持仓和低质量入场</p><p><strong>v_exp3</strong>: v5 + ADX趋势过滤。ADX(14)≤25时跳过买入，仅在有趋势时开仓</p><p><strong>v_exp8</strong>: v5 + ADX动态ATR倍数追踪止损。ADX>40用4xATR(强趋势放宽)，ADX<25用2xATR(震荡收窄)，其他3x</p><p><strong>v_exp4</strong>: v5 + 波动率自适应MACD参数。ATR/60日均ATR >1.5用短线(6,13,4)，<0.6用长线(24,52,18)，其他默认</p><h2>关键发现</h2><ul><li><strong>时间止损 (v_exp2)</strong> 收益最高 +42.33%，胜率 83.3%，简单有效</li><li><strong>组合版 (v_exp6)</strong> 时间止损+RR过滤，需查看新结果</li><li><strong>ADX动态ATR (v_exp8)</strong> 根据趋势强度自动调整止损宽度</li><li><strong>上证择时 (v_exp9)</strong> 熊市过滤效果待验证</li><li><strong>ADX趋势过滤 (v_exp3)</strong> 收益降至 +30.44%，在2024-2025趋势年中过滤掉部分有效入场</li><li><strong>自适应MACD (v_exp4)</strong> 仅 +9.20%，ATR比率切换参数引入不稳定性</li></ul></body></html>

@@ -536,7 +536,7 @@ def main():
         df = pd.DataFrame(all_results)
         # 保存原始明细
         ts = datetime.now().strftime('%Y%m%d_%H%M%S')
-        df.to_csv(f'batch_results_{ts}.csv', index=False, encoding='utf-8-sig')
+        df.to_csv(f'results/batch_results_{ts}.csv', index=False, encoding='utf-8-sig')
         print(f"\n明细已保存到 batch_results_{ts}.csv")
 
         print(f"\n{'='*70}")
