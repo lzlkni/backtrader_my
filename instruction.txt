@@ -115,3 +115,6 @@ sh603259	药明康德	医药CXO，虽然近期波动上升，但仍属大市值
 
 
 一个pipeline, 每星期 找热门板块股 -> 换一次股票池 (还持有的不变，固定的不变) -> 回测 -> Loop
+
+
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI3OTYwOWVlNy1hZjAwLTQzODEtYjQ1MC1lZDk4N2NmNzRjODQiLCJpc3MiOiJuOG4iLCJhdWQiOiJwdWJsaWMtYXBpIiwianRpIjoiNmJiY2ViMTgtZWNlNi00NTY5LTk5NmMtZGRjMDI0MGJjODJmIiwiaWF0IjoxNzgyNjU5MzAzfQ.JURSlF6pVKsMs-rr2D1UiUQg6PfUUWnRK5Tz-IPJqfk
