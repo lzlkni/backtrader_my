@@ -2,7 +2,8 @@
 
 ## 工作规则
 
-- **先计划后动手。** 非平凡修改先探索、制定计划、等批准。
+- **先计划后动手。** 所有改动必须有 plan，包含目标、范围、步骤，经确认后才执行。临时程序或非回测的小脚本例外，无需 plan。
+- **记录执行情况。** 完成后回填结果（成功/失败、关键输出、偏差说明），plan 作为永久记录保留。临时程序无需记录。
 - **策略改动必须回测。** 修改后用默认股票列表跑一轮，结果记入 `results/version_comparison.html`。
 - **对比历史版本。** 相同股票列表和日期范围做对比。
 
@@ -18,13 +19,13 @@ A 股回测项目，`backtrader` + `akshare`。无 CI/linter/测试框架，策�
 
 ## 目录结构（精简）
 
-- `strategies/` — 主线策略族 (base → 3.x)
+- `strategies/` — 主线策略族 (base → 3.5)
 - `versions/` — 退出管理迭代（v5 为推荐版本: +42.22%, 81%胜率, Sharpe 1.03）
 - `variants/` — AI 变体 + 一次性实验
-- `scripts/` — 选股、轮换、报告、API 服务器
-- `common/` — 共享工具（PrintAnalyzer, send_email, hot_stock_fetcher, stock_scorer）
-- `results/` — HTML/CSV 报告
-- `data/` — 数据文件、持仓状态、股票池
+- `scripts/` — 选股（screen_stocks_for_v5.py）、报告生成、辅助脚本
+- `common/` — PrintAnalyzer、send_email
+- `results/` — HTML/CSV 报告和对比表
+- `data/` — 数据文件、筛选结果
 - `Input_stock_list/` — 输入股票列表
 
 ## 公共导入模式
@@ -58,14 +59,8 @@ python variants/fast_macd3.4_all_stock.py -f <stock_file> -s 20240101
 python variants/fast_macd3.4_ai.py --start_date 20220101
 python variants/fast_macd3.4_ai2.py --sweep -s 20240101 -e 20250610
 
-# 选股
+# 选股（screen_stocks_for_v5.py 使用备用 Python 路径，见脚本顶部 PYTHON_EXE）
 python scripts/screen_stocks_for_v5.py --top 200 -s 20240101 -e 20250610
-python scripts/screen_stocks_105factors.py
-
-# 热门股 / 轮换 / API
-python scripts/daily_hot_stocks.py
-python scripts/weekly_rotation_backtest.py
-python scripts/api_server.py --port 8080
 
 # 股票画像
 python v5_stock_profiler.py -f Input_stock_list/<file>.txt
@@ -79,4 +74,4 @@ python v5_stock_profiler.py -f Input_stock_list/<file>.txt
 - `send_email.py` 和 `openclaw.json` 含敏感密钥，切勿泄露/提交。
 - 所有数据实时从 akshare 获取，无网络则失败。
 - **v5 为推荐基线**（`versions/fast_macd3.4_v5.py`）。
-- `scripts/` 可用备用 Python 环境。
+- `scripts/screen_stocks_for_v5.py` 使用备用 Python 环境（见脚本顶部 `PYTHON_EXE`）。

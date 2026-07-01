@@ -20,7 +20,7 @@ Conda env `backtrader`：
 D:\Users\lzl_k\anaconda3\envs\backtrader\python.exe
 ```
 覆盖：`BACKTEST_PYTHON` 环境变量。
-注意 `scripts/` 目录的脚本在文件顶部通过 `PYTHON_EXE` 使用不同的 Python 路径（`Python312\venvs\backtrader\`）。
+注意 `scripts/screen_stocks_for_v5.py` 在文件顶部通过 `PYTHON_EXE` 使用不同的 Python 路径（`Python312\venvs\backtrader\`）。
 
 ## 常用命令
 
@@ -39,12 +39,6 @@ python variants/fast_macd3.4_one.py
 
 # V5 全市场选股（见脚本顶部的 PYTHON_EXE 路径）
 python scripts/screen_stocks_for_v5.py --top 200 -s 20240101 -e 20250610
-
-# 105 维因子选股
-python scripts/screen_stocks_105factors.py
-
-# 每日热门概念板块龙头股
-python scripts/daily_hot_stocks.py
 ```
 
 股票文件格式：`code,name` 每行（如 `sz300568,星源材质`）。自动处理 UTF-8 with BOM。
@@ -116,7 +110,7 @@ akshare.stock_zh_a_daily(symbol=code, adjust="qfq")  →  pandas DataFrame
 - `InOutLine.upper` 计算在不同文件中不同：`fast_macd_base.py` 和 `fast_macd3.4_all_stock.py` 使用 `lowest * 1.5`；`fast_macd3.4.py` 使用 `bt.ind.Highest(period=12)`。这是版本间的有意差异。
 - `fast_macd3.4_ai.py` 使用懒导入（重型库在函数内 import），加快作为子进程的启动速度。
 - **所有策略文件顶部都要添加 `common/` 到 `sys.path`**。子目录文件用 `os.path.join(..., '..', 'common')`；根目录文件用 `os.path.join(..., 'common')`。新增策略文件必须包含此代码。
-- **`scripts/` 使用不同的 Python 路径**：文件顶部通过 `PYTHON_EXE` 常量指定 `Python312\venvs\backtrader\python.exe`。conda 环境和此 venv 均可工作。
+- **`scripts/screen_stocks_for_v5.py` 使用不同的 Python 路径**：文件顶部通过 `PYTHON_EXE` 常量指定 `Python312\venvs\backtrader\python.exe`。
 
 ## 目录结构
 
@@ -124,15 +118,8 @@ akshare.stock_zh_a_daily(symbol=code, adjust="qfq")  →  pandas DataFrame
 strategies/               — 主线策略（base, 3.1–3.5）
 versions/                 — 退出管理迭代（v2–v12, v_exp*, v5_etf）
 variants/                 — AI 变体 + 一次性实验
-scripts/                  — 辅助脚本（选股、报告、每日热门股票）
+scripts/                  — 选股、报告生成、辅助脚本
 common/                   — 共享工具（策略文件通过 sys.path.insert 导入）
-  ├── send_email.py           邮件通知（SMTP）
-  ├── PrintAnalyzer.py        交易分析格式化输出
-  ├── helpper.py              akshare 概念板块爬虫
-  ├── stock_list*.py          股票列表加载器
-  ├── eastmoney_boards.py     EastMoney 板块爬虫
-  ├── hot_stock_fetcher.py    akshare 概念板块 + 资金流获取器
-  └── stock_scorer.py         板块排名 + 龙头选取
 data/                     — 筛选 CSV 和分析辅助脚本
 results/                  — HTML 报告和批量 CSV
 Input_stock_list/         — 股票输入文件
