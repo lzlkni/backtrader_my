@@ -162,7 +162,7 @@ class fast_macd_strtgy(bt.Strategy):
             send = send_email.SendEmail()
             user_list = ['lzl_kni@qq.com']
             sub = 'fmacd_execut'
-            content = f"{dt.isoformat()} {self.stock_code} {self.stock_name} {txt}"
+            content = f"{dt.isoformat()} [v12] {self.stock_code} {self.stock_name} {txt}"
             send.send_mail(user_list, sub, content)
 
     def notify_trade(self, trade):

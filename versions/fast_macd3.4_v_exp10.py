@@ -22,7 +22,7 @@ from datetime import date
 # Change notes
 # 3.3 Add pre instrustion for buy/sell
 # 3.4.1 Fix outpoint
-# v_exp2: +time stop (close if holdings > 20 days and negative)
+# v_exp10: +improved market timing (60-day MA + slope filter)
 #####
 
 
@@ -100,7 +100,7 @@ class fast_macd_strtgy(bt.Strategy):
         ('upper_mult', 2.5), ('macd_high_thresh', 0.8), ('macd_low_thresh', 0.4),
         ('macd_high_factor', 0.3), ('macd_low_factor', 0.6),
         ('profit_threshold', 8.0), ('sell_pct', 30.0),
-        ('time_stop_days', 20),
+        ('market_symbol', 'sh000001'), ('market_ma_period', 60), ('market_slope_period', 20),
     )
     
     def __init__(self):
@@ -129,8 +129,17 @@ class fast_macd_strtgy(bt.Strategy):
         self.partial_sold = False
         self.highest_since_entry = None
         self.current_stop = None
-        self.entry_bar = None
         self.atr = bt.ind.ATR(self.datas[0], period=14)
+
+        # v_exp10: improved market timing (60MA + slope)
+        self.market_ma = None
+        self.market_slope = None
+        if len(self.datas) > 1:
+            self.market_close = self.datas[1].close
+            self.market_ma = bt.ind.SMA(self.datas[1].close, period=self.p.market_ma_period)
+            # Slope: rate of change of MA over slope_period
+            self.market_mom = bt.ind.Momentum(self.market_ma, period=self.p.market_slope_period)
+        self.market_regime_bull = True
 
         self.out_point_up = None
         self.out_point_down = None
@@ -144,8 +153,22 @@ class fast_macd_strtgy(bt.Strategy):
             return
 
         if not self.position:
+            # v_exp10: improved market regime check
+            if self.market_ma is not None:
+                ma_val = self.market_ma[0]
+                slope_val = self.market_mom[0] if self.market_mom is not None else 0
+                if pd.isna(ma_val) or pd.isna(slope_val):
+                    self.market_regime_bull = True  # warmup: treat as bull
+                else:
+                    # Bull: price above MA AND MA slope positive
+                    self.market_regime_bull = (self.market_close[0] > ma_val) and (slope_val > 0)
+            else:
+                self.market_regime_bull = True
             # ── Buy logic ──
-            if self.upCrossSignal.crossOver == 1 and self.fastMacd.l.signal[0] > 0:
+            if self.upCrossSignal.crossOver == 1 and self.fastMacd.l.signal[0] > 0 and not self.market_regime_bull:
+                self.log(f"Market regime bearish (MA60 slope<=0), skip buy")
+
+            if self.upCrossSignal.crossOver == 1 and self.fastMacd.l.signal[0] > 0 and self.market_regime_bull:
                 current_price = self.data_close[0]
                 estimated_out_point_up, estimated_out_point_down, estimated_return, estimated_stop_loss, cat, std_scale = self.calculate_stop_loss_target(current_price)
 
@@ -173,14 +196,6 @@ class fast_macd_strtgy(bt.Strategy):
                     if sell_size > 0:
                         self.order = self.sell(size=sell_size)
                         return
-
-            # 0.5) Time stop: close if >20 bars and negative
-            if sell_reason is None and self.entry_bar is not None:
-                hold_bars = len(self) - self.entry_bar
-                if hold_bars > self.p.time_stop_days:
-                    unreal_pnl_pct = (self.data_close[0] - self.entry_price) / self.entry_price * 100
-                    if unreal_pnl_pct < 0:
-                        sell_reason = f"Time stop: held {hold_bars} days, P&L {unreal_pnl_pct:.1f}%"
 
             # 1) Legacy InOutLine target/stop (fallback)
             if sell_reason is None:
@@ -212,7 +227,6 @@ class fast_macd_strtgy(bt.Strategy):
             if order.isbuy():
                 self.buy_price = order.executed.price
                 self.buy_comm = order.executed.comm
-                self.entry_bar = len(self)
 
                 # 使用共用方法计算止盈止损
                 self.out_point_up, self.out_point_down, expected_return, stop_loss_return, cat, std_scale = self.calculate_stop_loss_target(self.buy_price)
@@ -244,7 +258,7 @@ class fast_macd_strtgy(bt.Strategy):
             send = send_email.SendEmail()
             user_list = ['lzl_kni@qq.com']
             sub = "fmacd_execut"
-            content = f"{dt.isoformat()} [v_exp2] {self.stock_code} {self.stock_name} {txt}"
+            content = f"{dt.isoformat()} [v_exp10] {self.stock_code} {self.stock_name} {txt}"
             send.send_mail(user_list, sub, content)
 
     def calculate_stop_loss_target(self, current_price):
@@ -394,7 +408,18 @@ def main():
 
     # 收集结果用于分组分析
     all_results = []
-    
+
+    # v_exp10: fetch market index data
+    market_df = None
+    try:
+        market_df = ak.stock_zh_index_daily(symbol='sh000001')
+        market_df.columns = ['date', 'open', 'high', 'low', 'close', 'volume']
+        market_df['date'] = pd.to_datetime(market_df['date'])
+        market_df = market_df[(market_df['date'] >= pd.to_datetime(start_date)) & (market_df['date'] <= pd.to_datetime(end_date))]
+        market_df = market_df.set_index('date').sort_index()
+    except Exception as e:
+        print(f"Market index fetch failed: {e}")
+
     for stock_code in stocks_map.keys():
         
         stock_name = stocks_map[stock_code]
@@ -423,6 +448,11 @@ def main():
         data = bt.feeds.PandasData(dataname=stock_hfq_df)  # 加载数据
 
         cerebro.adddata(data)  # 将数据传入回测系统
+
+        # v_exp10: add market index as second data feed
+        if market_df is not None and len(market_df) > 0:
+            market_data = bt.feeds.PandasData(dataname=market_df)
+            cerebro.adddata(market_data, name='market')
         cerebro.addstrategy(fast_macd_strtgy, stock_code=stock_code, stock_name=stock_name)
         # cerebro.add_signal(bt.SIGNAL_LONGSHORT, UpCrossSignal)
         start_cash = 100000
