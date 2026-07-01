@@ -229,10 +229,22 @@ class fast_macd_strtgy(bt.Strategy):
             self.log("sending email")
 
             dt = self.datas[0].datetime.date(0)
+
+            # 判断市场状态: 价格 > 120日均线 = 牛市, 否则 = 熊市
+            try:
+                price = self.data_close[0]
+                ma120 = self.sma[0]
+                if price > ma120:
+                    regime = "BULL"
+                else:
+                    regime = "BEAR"
+            except:
+                regime = "N/A"
+
             send = send_email.SendEmail()
             user_list = ['lzl_kni@qq.com']
             sub = "fmacd_execut"
-            content = f"{dt.isoformat()} {self.stock_code} {self.stock_name} {txt}"
+            content = f"{dt.isoformat()} [{regime}] {self.stock_code} {self.stock_name} {txt}"
             send.send_mail(user_list, sub, content)
 
     def calculate_stop_loss_target(self, current_price):
